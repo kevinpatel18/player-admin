@@ -19,8 +19,7 @@ const AuthProtected = () => {
     <div id="layout-wrapper">
       <Header />
       <Outlet />
-
-      {isTablet && <MobileNavbar />}
+      <div className="mt-14">{isTablet && <MobileNavbar />}</div>
     </div>
   );
 };

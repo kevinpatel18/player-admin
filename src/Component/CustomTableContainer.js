@@ -108,6 +108,7 @@ const CustomTableContainer = ({
           bordered
           footer={footer ? footer : false}
           pagination={false}
+          
         />
       )}
       {!removePagination && (

@@ -335,7 +335,7 @@ const MobileNavbar = () => {
 
   return (
     <div
-      class="fixed bottom-0 left-0 z-50 w-full h-18 bg-white border-t border-gray-200 "
+      class="fixed bottom-0  left-0 z-50 w-full h-16 bg-white border-t border-gray-200 "
       style={{ zIndex: 999999 }}
     >
       <div
@@ -345,18 +345,25 @@ const MobileNavbar = () => {
         {sidebarData.map((item) => (
           <button
             type="button"
-            className={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group ${
+            className={`inline-flex flex-col items-center justify-center px-5 m-0 hover:bg-gray-50 dark:hover:bg-gray-800 group ${
               location?.pathname === item?.link
                 ? "active p-2 text-white"
                 : "p-1"
             }`}
+            style={{
+              color: location?.pathname === item?.link ? "white" : "",
+            }}
             onClick={() => {
               navigate(item?.link);
             }}
           >
             {item?.icon}
 
-            <span class="pt-1 text-sm text-dark group-hover:text-blue-600 dark:group-hover:text-blue-500">
+            <span
+              class={`pt-1 text-sm text-dark  ${
+                location?.pathname === item?.link ? "p-2 text-white" : "p-1"
+              }`}
+            >
               {item.title}
             </span>
           </button>

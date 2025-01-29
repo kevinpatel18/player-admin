@@ -27,12 +27,11 @@ import dayjs from "dayjs";
 import moment from "moment-timezone";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import useBreakPoints from "../../hooks/useBreakPoints";
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { Row, Col } from "reactstrap";
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 
 const IOSSwitch = styled((props) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
@@ -298,9 +297,9 @@ const SlotUpdateModal = ({
                 dayjs.tz(timeToISO(startTime))
               );
               const fromISO = dayjs.tz(timeToISO(startTime));
-              console.log('fromISO: ', fromISO);
+              console.log("fromISO: ", fromISO);
               const toISO = dayjs.tz(timeToISO(endTime));
-              console.log('toISO: ', toISO);
+              console.log("toISO: ", toISO);
 
               if (slotMap.has(amount)) {
                 const existingSlot = slotMap.get(amount);
@@ -469,14 +468,13 @@ const SlotUpdateModal = ({
             borderRadius: 3,
             boxShadow: 24,
             textAlign: "center",
-            p: 4,
             height: isTablet ? "90%" : "auto",
             overflow: isTablet && "auto",
           }}
         >
           <div
-            className={`flex justify-between items-center ${
-              isMobile ? "flex-column gap-3 w-100" : ""
+            className={`flex justify-between items-center bg-blue-100 p-3 ${
+              isMobile ? "flex-col gap-3 w-full" : ""
             }`}
           >
             <p
@@ -528,10 +526,10 @@ const SlotUpdateModal = ({
             />
           </div>
 
-          <div className="mt-7 flex flex-col">
+          <div className="mt-7 p-3 flex flex-col">
             <div
               className={`flex justify-between ${
-                isMobile && "flex-column gap-3 w-100"
+                isMobile && "flex-col gap-3 w-full"
               }`}
             >
               <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -594,7 +592,7 @@ const SlotUpdateModal = ({
               timeSlots?.map((item, i) => (
                 <div
                   className={`mt-4 flex gap-2 ${
-                    isMobile && "flex-column gap-3 w-100"
+                    isTablet && "flex-col gap-3 w-full"
                   }`}
                 >
                   <div>
@@ -620,6 +618,7 @@ const SlotUpdateModal = ({
                           // shouldDisableTime={(value, view) =>
                           //   shouldDisableTime(value, view, item?.from)
                           // }
+
                           minutesStep={30}
                           slotProps={{
                             textField: {
@@ -741,8 +740,12 @@ const SlotUpdateModal = ({
           </div>
 
           <div
-            className={`mt-10 flex justify-end gap-3 mr-5    ${
-              isMobile ? "flex-column gap-3 w-100" : "ml-5"
+            className={` flex justify-end gap-3 mr-5 p-4  ${
+              isMobile
+                ? "flex-col gap-3 w-full mb-5"
+                : isTablet
+                ? "mb-5"
+                : "ml-5 mt-10"
             } `}
           >
             <button

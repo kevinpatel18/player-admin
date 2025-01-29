@@ -127,7 +127,7 @@
 
 .nav-header-2   .active {
   background: #000000;
-  margin: 10px 0px;
+  margin: 0px 0px;
   
 }
 
@@ -345,6 +345,10 @@ input::-webkit-inner-spin-button {
   animation-delay: 0.1s;
 }
 
+
+.MuiDateRangeCalendar-root > div:first-child {
+  display: none !important;
+}
 @keyframes pulse {
   0% {
     transform: scale(0.8);
