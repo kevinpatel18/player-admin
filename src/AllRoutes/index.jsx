@@ -1,10 +1,11 @@
 import React from "react";
 import { protectedRoutes, publicRoutes } from "./allRoutes";
 import { Routes, Route } from "react-router-dom";
-import { AuthProtected } from "./AuthProtected"; 
+import { AuthProtected } from "./AuthProtected";
 import NonAuthLayout from "../Layout/NonAuthLayout";
 
 const Index = () => {
+  console.log("running");
   return (
     <Routes>
       {/* Public Routes */}
