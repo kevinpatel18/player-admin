@@ -384,9 +384,16 @@ export default function Header() {
             </a>
             <ul class="child transition duration-300 md:absolute top-full right-0 md:w-48 bg-white md:shadow-lg md:rounded-b ">
               <li>
-                <a href="#" class="flex px-4 py-3 hover:bg-gray-50">
+                <Link
+                  onClick={() => {
+                    localStorage.clear();
+                    navigate("/login");
+                    window.location.reload();
+                  }}
+                  class="flex px-4 py-3 hover:bg-gray-50"
+                >
                   Log Out
-                </a>
+                </Link>
               </li>
             </ul>
           </li>
