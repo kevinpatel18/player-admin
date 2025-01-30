@@ -151,8 +151,8 @@ export const updateCancelBooking = async (formData) => {
 
 export const getAllUserReport = async (formData) => {
   let url = formData?.userid
-    ? `${baseUrl}userReportByVenueOwner/${formData?.userid}?page=${formData?.offset}&page_size=${formData?.limit}`
-    : `${baseUrl}userReport?page=${formData?.offset}&page_size=${formData?.limit}&venueOwnerId=${formData?.userid}`;
+    ? `${baseUrl}manageUser/${formData?.userid}?page=${formData?.offset}&page_size=${formData?.limit}&name=${formData?.name || ""}&phoneNumber=${formData?.phoneNumber || ""}`
+    : `${baseUrl}userReport?page=${formData?.offset}&page_size=${formData?.limit}&venueOwnerId=${formData?.userid}&name=${formData?.name || ""}&phoneNumber=${formData?.phoneNumber || ""}`;
   const data = await fetch(url, {
     method: "GET",
     headers: {
