@@ -44,7 +44,7 @@ const RevenueSummary = () => {
   const [loading, setloading] = useState(true);
   const [limit, setLimit] = useState(10); // default slimit
   const [totalPages, setTotalPages] = useState(0);
-  const [offset, setOffset] = useState(1); // default offset
+  const [offset, setOffset] = useState(0); // default offset
   const [currentDate, setCurrentDate] = useState(new Date());
   const [query, setQuery] = useState({
     selectedRange: "week",
