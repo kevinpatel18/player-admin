@@ -85,6 +85,14 @@ const CustomTableContainer = ({
     }
   };
 
+  let selectedKey = [];
+  rows?.map((er, i) => {
+    console.log("er?.status: ", er?.status);
+    if (er?.status === "Completed") {
+      selectedKey?.push(er[`${rowKey}`]);
+    }
+  });
+
   return (
     <div>
       {columns2 ? (
@@ -101,14 +109,36 @@ const CustomTableContainer = ({
           rowKey="userId"
           pagination={false}
         />
-      ) : (
+      ) : rowSelection ? (
         <Table
           columns={columns}
           dataSource={rows}
+          pagination={false}
+          rowSelection={{
+            type: "checkbox",
+            selectedRowKeys: [...selectedRowIds, ...selectedKey],
+            onChange: (selectedKeys) => {
+              console.log("selectedKeys: ", selectedKeys);
+              setSelectedRowIds(selectedKeys);
+            },
+            defaultSelectedRowKeys: selectedKey,
+            getCheckboxProps: (row) => ({
+              disabled: row?.status === "Completed",
+
+              // Disable checkbox if row is already selected
+            }),
+          }}
+          rowKey={(row) => row[`${rowKey}`]} // Use unique key for bookings
+        />
+      ) : (
+        <Table
+          columns={columns}
+          rowKey="userId"
+          dataSource={rows}
+          rowSelection={rowSelection}
           bordered
           footer={footer ? footer : false}
           pagination={false}
-          
         />
       )}
       {!removePagination && (

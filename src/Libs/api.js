@@ -1,6 +1,6 @@
-const baseUrl =
-  "https://fd8a6942-2a37-4632-8c05-bd8874f009d9.e1-us-east-azure.choreoapps.dev/";
-// const baseUrl = "http://localhost:8080/";
+// const baseUrl =
+// "https://fd8a6942-2a37-4632-8c05-bd8874f009d9.e1-us-east-azure.choreoapps.dev/";
+const baseUrl = "http://localhost:8080/";
 
 export const getAllSportDetails = async () => {
   const data = await fetch(`${baseUrl}sports`, {
@@ -183,6 +183,7 @@ export const getAllRevenueAnalysisReport = async (formData) => {
 };
 
 export const getAllCancelBookingReport = async (formData) => {
+  console.log("formData: ", formData);
   let api = formData?.userid
     ? `${baseUrl}cancelBookingReport?page=${formData?.offset}&page_size=${
         formData?.limit

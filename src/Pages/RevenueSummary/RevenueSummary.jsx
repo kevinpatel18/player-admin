@@ -24,6 +24,7 @@ import moment from "moment";
 import {
   getAllCancelBookingReport,
   getAllRevenueAnalysisReport,
+  UpdateCancelBookingVenueStatus,
 } from "../../Libs/api";
 import CustomTableContainer from "../../Component/CustomTableContainer";
 import { formatIndianNumber } from "../../hooks/helper";
@@ -33,6 +34,7 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers-pro/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Loader from "../../Component/Loader";
 
 const RevenueSummary = () => {
   const { user } = useContext(MyContext);
@@ -41,6 +43,8 @@ const RevenueSummary = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [revenueDetails, setRevenueDetails] = useState({});
   console.log("revenueDetails: ", revenueDetails);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+  console.log("selectedRowIds: ", selectedRowIds);
   const [loading, setloading] = useState(true);
   const [limit, setLimit] = useState(10); // default slimit
   const [totalPages, setTotalPages] = useState(0);
@@ -330,6 +334,106 @@ const RevenueSummary = () => {
       key: "playerAmount",
     },
   ];
+  const cancelBookingColumns = [
+    {
+      title: "Date",
+      dataIndex: "date",
+      key: "date",
+    },
+
+    {
+      width: 200,
+      title: "Full Name",
+      render: (cell) => {
+        return <span className="capitalize">{cell?.users?.username}</span>;
+      },
+    },
+    {
+      width: 200,
+      title: "Mobile Number",
+      render: (cell) => {
+        return <span className="capitalize">{cell?.users?.phoneNumber}</span>;
+      },
+    },
+
+    {
+      title: "Venue",
+      render: (cell) => {
+        return <span>{cell?.venue?.name}</span>;
+      },
+      key: "venue.name",
+    },
+    {
+      title: "Court ",
+      render: (cell) => {
+        return <span>{cell?.venueCourt?.courtName}</span>;
+      },
+      key: "venueCourt.courtName",
+    },
+    {
+      title: "Sport",
+      render: (cell) => {
+        return <span>{cell?.venueSport?.name}</span>;
+      },
+      key: "venueSport.name",
+    },
+    {
+      title: "Start Time",
+      dataIndex: "startTime",
+      key: "startTime",
+    },
+    {
+      title: "End Time",
+      dataIndex: "endTime",
+      key: "endTime",
+    },
+    {
+      title: "Price",
+      dataIndex: "price",
+      key: "price",
+    },
+    {
+      title: "Ground Amount",
+      dataIndex: "groundAmount",
+      key: "groundAmount",
+    },
+    {
+      title: "Player Amount",
+      dataIndex: "playerAmount",
+      key: "playerAmount",
+    },
+    {
+      title: "Status",
+      render: (cell) => {
+        console.log(cell);
+        return (
+          <span
+            style={{
+              color:
+                cell?.status === "Pending"
+                  ? "rgb(247 184 75)"
+                  : cell?.status === "Completed"
+                  ? "rgb(10 179 156)"
+                  : "",
+              backgroundColor:
+                cell?.status === "Pending"
+                  ? "#fef4e4"
+                  : cell?.status === "Completed"
+                  ? "#daf4f0"
+                  : "",
+              padding: "0.65em 0.35em",
+              fontSize: 12,
+              borderRadius: 4,
+              fontWeight: 600,
+            }}
+          >
+            {cell?.status}
+          </span>
+        );
+      },
+      key: "status",
+    },
+  ];
 
   const DrawerList = (
     <Box
@@ -404,6 +508,46 @@ const RevenueSummary = () => {
     </Box>
   );
 
+  const handleUpdateStatus = async () => {
+    setloading(true);
+
+    let formData = {
+      cancelBookingVenueIds: selectedRowIds,
+      status: "Completed",
+    };
+    try {
+      const apiCall = await UpdateCancelBookingVenueStatus(formData);
+      if (apiCall.status) {
+        console.log(apiCall, "apiCall");
+        const { startDate, endDate } = getDateRange(
+          query?.selectedRange,
+          currentDate
+        );
+        const fromDate = format(startDate, "yyyy-MM-dd");
+        const toDate = format(endDate, "yyyy-MM-dd");
+        callCancelBookingAPI(limit, offset, fromDate, toDate);
+        setloading(false);
+      } else {
+        setloading(false);
+        toast.error(apiCall?.message);
+      }
+    } catch (error) {
+      console.log(error);
+      setloading(false);
+      toast.error("Something went wrong. Please try again later.");
+    }
+  };
+
+  useEffect(() => {
+    if (selectedRowIds?.length > 0) {
+      handleUpdateStatus();
+    }
+  }, [selectedRowIds]);
+
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <div className="p-6">
       <div className="flex flex-col md:flex-row gap-6 ">
@@ -467,7 +611,7 @@ const RevenueSummary = () => {
       {!isTablet && (
         <div>
           <div className={`flex justify-end items-center gap-4 mt-10`}>
-            <FormControl variant="outlined" size="medium">
+            <FormControl variant="outlined" size="small">
               <Select
                 value={query?.selectedRange}
                 onChange={handleRangeChange}
@@ -567,15 +711,41 @@ const RevenueSummary = () => {
           </Tabs>
         </Box>
         <div className="table-responsive pb-2">
-          <CustomTableContainer
-            rows={revenueDetails?.rows}
-            columns={bookingColumns}
-            limit={limit}
-            offset={offset}
-            total={totalPages}
-            setOffset={setOffset}
-            setLimit={setLimit}
-          />
+          {selectedTab === "booking" && (
+            <CustomTableContainer
+              rows={revenueDetails?.rows}
+              columns={bookingColumns}
+              limit={limit}
+              offset={offset}
+              total={totalPages}
+              setOffset={setOffset}
+              setLimit={setLimit}
+            />
+          )}
+          {selectedTab === "cancel" && (
+            // <CustomTableContainer
+            //   rows={revenueDetails?.rows}
+            //   columns={cancelBookingColumns}
+            //   limit={limit}
+            //   offset={offset}
+            //   total={totalPages}
+            //   setOffset={setOffset}
+            //   setLimit={setLimit}
+            // />
+            <CustomTableContainer
+              rows={revenueDetails?.rows}
+              columns={cancelBookingColumns}
+              limit={limit}
+              rowKey={"cancelBookingVenueId"}
+              offset={offset}
+              total={totalPages}
+              setOffset={setOffset}
+              setLimit={setLimit}
+              rowSelection={true}
+              selectedRowIds={selectedRowIds}
+              setSelectedRowIds={setSelectedRowIds}
+            />
+          )}
         </div>
       </div>
 
