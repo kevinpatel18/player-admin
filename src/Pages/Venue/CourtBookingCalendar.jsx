@@ -103,7 +103,8 @@ export default function CourtBookingCalendar() {
     }
 
     const socket = new WebSocket(
-      "ws://localhost:8080"
+      // "ws://localhost:8080"
+      "ws://13.126.8.42"
     );
     // const socket = new WebSocket("ws://localhost:8080");
 

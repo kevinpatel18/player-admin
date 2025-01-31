@@ -1,6 +1,7 @@
 // const baseUrl =
 // "https://fd8a6942-2a37-4632-8c05-bd8874f009d9.e1-us-east-azure.choreoapps.dev/";
-const baseUrl = "http://localhost:8080/";
+// const baseUrl = "http://localhost:8080/";
+const baseUrl = "http://13.126.8.42/";
 
 export const getAllSportDetails = async () => {
   const data = await fetch(`${baseUrl}sports`, {
@@ -151,8 +152,16 @@ export const updateCancelBooking = async (formData) => {
 
 export const getAllUserReport = async (formData) => {
   let url = formData?.userid
-    ? `${baseUrl}manageUser/${formData?.userid}?page=${formData?.offset}&page_size=${formData?.limit}&name=${formData?.name || ""}&phoneNumber=${formData?.phoneNumber || ""}`
-    : `${baseUrl}userReport?page=${formData?.offset}&page_size=${formData?.limit}&venueOwnerId=${formData?.userid}&name=${formData?.name || ""}&phoneNumber=${formData?.phoneNumber || ""}`;
+    ? `${baseUrl}manageUser/${formData?.userid}?page=${
+        formData?.offset
+      }&page_size=${formData?.limit}&name=${formData?.name || ""}&phoneNumber=${
+        formData?.phoneNumber || ""
+      }`
+    : `${baseUrl}userReport?page=${formData?.offset}&page_size=${
+        formData?.limit
+      }&venueOwnerId=${formData?.userid}&name=${
+        formData?.name || ""
+      }&phoneNumber=${formData?.phoneNumber || ""}`;
   const data = await fetch(url, {
     method: "GET",
     headers: {
