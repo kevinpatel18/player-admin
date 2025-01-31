@@ -9,13 +9,18 @@ import { TextField } from "@mui/material";
 import { Filter, BookmarkX } from "lucide-react";
 import { Button } from "reactstrap";
 import moment from "moment";
+import Box from "@mui/material/Box";
+import { Drawer } from "@mui/material";
+import useBreakPoints from "../../hooks/useBreakPoints";
 
 const ManageUser = () => {
   const { user } = useContext(MyContext);
+  const { isMobile, isTablet } = useBreakPoints();
   const [userDetails, setUserDetails] = useState([]);
   const [loading, setloading] = useState(true);
   const [limit, setLimit] = useState(10); // default slimit
   const [offset, setOffset] = useState(0); // default offset
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
   const [query, setQuery] = useState({
     name: "",
@@ -183,13 +188,28 @@ const ManageUser = () => {
     },
   ];
 
-  if (loading) {
-    return <Loader />;
-  }
-
-  return (
-    <div>
-      <div className={`flex items-center gap-4 mt-10 px-7`}>
+  const DrawerList = (
+    <Box
+      sx={{ width: 350 }}
+      role="presentation"
+      // onClick={() => setDrawerOpen(false)}
+    >
+      <h1
+        className="p-4 text-start"
+        style={{
+          fontSize: 20,
+          background: "black",
+          color: "white",
+          fontWeight: 800,
+        }}
+      >
+        Apply Filter
+      </h1>
+      <div
+        className={`flex w-full justify-start flex-col gap-5 items-center mb-4 mt-5  ${
+          isMobile ? "flex-column gap-3" : ""
+        }`}
+      >
         <TextField
           type="text"
           size="small"
@@ -244,7 +264,90 @@ const ManageUser = () => {
           Clear
         </Button>
       </div>
-      <div className="p-4" style={{}}>
+    </Box>
+  );
+
+  if (loading) {
+    return <Loader />;
+  }
+
+  return (
+    <div>
+      {!isTablet && (
+        <div className={`flex items-center gap-4 mt-10 px-7`}>
+          <TextField
+            type="text"
+            size="small"
+            id="outlined-controlled"
+            label={` Full Name`}
+            placeholder="Search for Full Name"
+            className="mt-4"
+            value={query?.name}
+            onChange={(event) => {
+              setQuery({ ...query, name: event.target.value });
+            }}
+          />
+          <TextField
+            type="number"
+            size="small"
+            id="outlined-controlled"
+            label={`Phone Number`}
+            placeholder="Search for Phone Number"
+            className="mt-4"
+            value={query?.phoneNumber}
+            onChange={(event) => {
+              setQuery({ ...query, phoneNumber: event.target.value });
+            }}
+          />
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              handleApplyFilter(limit, offset, query);
+            }}
+            style={{ padding: "8px 23px" }}
+            className="bg-black text-white hover:bg-gray-800 flex items-center rounded "
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filter
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setQuery({
+                name: "",
+                phoneNumber: "",
+              });
+              callAPI(10, 0);
+              setLimit(10);
+              setOffset(0);
+            }}
+            style={{ padding: "8px 23px" }}
+            className="bg-orange-600 text-white hover:bg-orange-800 flex items-center rounded "
+          >
+            <BookmarkX className="w-4 h-4 mr-2" />
+            Clear
+          </Button>
+        </div>
+      )}
+
+      {isTablet && (
+        <div className="flex justify-end mt-10">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setDrawerOpen(true);
+            }}
+            style={{ padding: "10px 23px" }}
+            className="bg-black text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Apply Filter
+          </Button>
+        </div>
+      )}
+
+      <div className="p-4 table-responsive" style={{}}>
         <CustomTableContainer
           rows={userDetails}
           columns={columns}
@@ -256,6 +359,16 @@ const ManageUser = () => {
           columns2={bookingColumns}
         />
       </div>
+
+      <Drawer
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false);
+        }}
+        anchor={"right"}
+      >
+        {DrawerList}
+      </Drawer>
     </div>
   );
 };
