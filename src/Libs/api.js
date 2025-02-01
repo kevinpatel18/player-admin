@@ -1,7 +1,7 @@
 // const baseUrl =
 // "https://fd8a6942-2a37-4632-8c05-bd8874f009d9.e1-us-east-azure.choreoapps.dev/";
-// const baseUrl = "http://localhost:8080/";
-const baseUrl = "http://13.126.8.42/";
+const baseUrl = "http://localhost:8080/";
+// const baseUrl = "http://13.126.8.42/";
 
 export const getAllSportDetails = async () => {
   const data = await fetch(`${baseUrl}sports`, {
@@ -180,6 +180,43 @@ export const getAllRevenueAnalysisReport = async (formData) => {
         formData?.toDate
       }&venueOwnerId=${formData?.userid || ""} `
     : `${baseUrl}bookingVenueReport?page=${formData?.offset}&page_size=${formData?.limit}&from_date=${formData?.fromDate}&to_date=${formData?.toDate}`;
+
+  const data = await fetch(api, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const _data = await data.json();
+  return _data;
+};
+
+export const getAllSettlementReport = async (formData) => {
+  let api = formData?.userid
+    ? `${baseUrl}transactionSettlementList?page=${formData?.offset}&page_size=${
+        formData?.limit
+      }&from_date=${formData?.fromDate}&to_date=${
+        formData?.toDate
+      }&venueOwnerId=${formData?.userid || ""} `
+    : `${baseUrl}transactionSettlementList?page=${formData?.offset}&page_size=${formData?.limit}&from_date=${formData?.fromDate}&to_date=${formData?.toDate}`;
+
+  const data = await fetch(api, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const _data = await data.json();
+  return _data;
+};
+export const getAllRefundsReport = async (formData) => {
+  let api = formData?.userid
+    ? `${baseUrl}transactionRefundsList?page=${formData?.offset}&page_size=${
+        formData?.limit
+      }&from_date=${formData?.fromDate}&to_date=${
+        formData?.toDate
+      }&venueOwnerId=${formData?.userid || ""} `
+    : `${baseUrl}transactionRefundsList?page=${formData?.offset}&page_size=${formData?.limit}&from_date=${formData?.fromDate}&to_date=${formData?.toDate}`;
 
   const data = await fetch(api, {
     method: "GET",
