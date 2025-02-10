@@ -104,7 +104,7 @@ export default function CourtBookingCalendar() {
 
     const socket = new WebSocket(
       // "ws://localhost:80"
-      "ws://pllayer-backend.onrender.com"
+      "wss://pllayer-backend.onrender.com"
     );
     // const socket = new WebSocket("ws://localhost:8080");
 
