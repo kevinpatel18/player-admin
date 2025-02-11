@@ -102,8 +102,9 @@ const EditModal = ({
         phonenumber: userinputData?.phoneNumber,
         ispartialpayment: false,
         date: selectedRow?.row?.date,
-        groundAmount: +selectedRow?.row?.price,
-        playerAmount: 0,
+        groundAmount: 0,
+        playerAmount: selectedRow?.row?.price,
+        upiId: "test",
       };
 
       setloading(true);

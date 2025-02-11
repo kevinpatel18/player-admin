@@ -25,16 +25,85 @@ import {
   getAllRefundsReport,
   getAllSettlementReport,
   UpdateCancelBookingVenueStatus,
+  updateTransactionRefundStatus,
 } from "../../Libs/api";
 import CustomTableContainer from "../../Component/CustomTableContainer";
 import { formatIndianNumber } from "../../hooks/helper";
-import { Drawer, Select, MenuItem, FormControl } from "@mui/material";
+import {
+  Drawer,
+  Select,
+  MenuItem,
+  FormControl,
+  Switch,
+  FormControlLabel,
+} from "@mui/material";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers-pro/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Loader from "../../Component/Loader";
+import { styled } from "@mui/material/styles";
+
+const IOSSwitch = styled((props) => (
+  <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
+))(({ theme }) => ({
+  width: 42,
+  height: 26,
+  padding: 0,
+  "& .MuiSwitch-switchBase": {
+    padding: 0,
+    margin: 2,
+    transitionDuration: "300ms",
+    "&.Mui-checked": {
+      transform: "translateX(16px)",
+      color: "#fff",
+      "& + .MuiSwitch-track": {
+        backgroundColor: "#0044CA",
+        opacity: 1,
+        border: 0,
+        ...theme.applyStyles("dark", {
+          backgroundColor: "#2ECA45",
+        }),
+      },
+      "&.Mui-disabled + .MuiSwitch-track": {
+        opacity: 0.5,
+      },
+    },
+    "&.Mui-focusVisible .MuiSwitch-thumb": {
+      color: "#33cf4d",
+      border: "6px solid #fff",
+    },
+    "&.Mui-disabled .MuiSwitch-thumb": {
+      color: theme.palette.grey[100],
+      ...theme.applyStyles("dark", {
+        color: theme.palette.grey[600],
+      }),
+    },
+    "&.Mui-disabled + .MuiSwitch-track": {
+      opacity: 0.7,
+      ...theme.applyStyles("dark", {
+        opacity: 0.3,
+      }),
+    },
+  },
+  "& .MuiSwitch-thumb": {
+    boxSizing: "border-box",
+    width: 22,
+    height: 22,
+  },
+  "& .MuiSwitch-track": {
+    borderRadius: 26 / 2,
+    backgroundColor: "#E9E9EA",
+    opacity: 1,
+    transition: theme.transitions.create(["background-color"], {
+      duration: 500,
+    }),
+    ...theme.applyStyles("dark", {
+      backgroundColor: "#39393D",
+    }),
+  },
+}));
 
 const ManagePayment = () => {
   const { user } = useContext(MyContext);
@@ -399,7 +468,7 @@ const ManagePayment = () => {
       key: "totalPriceplayerAmount",
     },
     {
-      title: "Amount After Commission",
+      title: "Refund Amount",
       render: (cell) => {
         return (
           <span>
@@ -410,7 +479,74 @@ const ManagePayment = () => {
       },
       key: "amounttotalPriceplayerAmount",
     },
+    {
+      title: "UPI ID",
+      dataIndex: "upiId",
+      key: "upiId",
+    },
+    {
+      title: "Status",
+      render: (cell) => {
+        return (
+          <FormControlLabel
+            control={
+              <IOSSwitch
+                sx={{ m: 1 }}
+                checked={cell?.status}
+                disabled={cell?.status}
+                onChange={(e) => {
+                  updateStatus(cell?.transactionId);
+                }}
+              />
+            }
+            // labelPlacement="start"
+            sx={{ width: isTablet ? "auto" : "15%", textWrap: "nowrap" }}
+          />
+        );
+      },
+      key: "amounttotalPriceplayerAmount",
+    },
   ];
+
+  const updateStatus = async (id) => {
+    let arr = [];
+    arr?.push(id);
+
+    let formData = {
+      transactionIds: JSON.stringify(arr),
+    };
+
+    setloading(true);
+
+    try {
+      const apiCall = await updateTransactionRefundStatus(formData);
+      if (apiCall.status) {
+        console.log(apiCall, "apiCall");
+
+        setloading(false);
+        const { startDate, endDate } = getDateRange(
+          query?.selectedRange,
+          currentDate
+        );
+        const fromDate = format(startDate, "yyyy-MM-dd");
+        const toDate = format(endDate, "yyyy-MM-dd");
+
+        if (query?.selectedRange !== "custom") {
+          if (selectedTab === "booking") {
+            callAPI(limit, offset, fromDate, toDate);
+          } else if (selectedTab === "cancel") {
+            callCancelBookingAPI(limit, offset, fromDate, toDate);
+          }
+        }
+        // setOpen(false);
+      } else {
+        toast.error(apiCall?.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
 
   const DrawerList = (
     <Box
@@ -484,42 +620,6 @@ const ManagePayment = () => {
       </div>
     </Box>
   );
-
-  const handleUpdateStatus = async () => {
-    setloading(true);
-
-    let formData = {
-      cancelBookingVenueIds: selectedRowIds,
-      status: "Completed",
-    };
-    try {
-      const apiCall = await UpdateCancelBookingVenueStatus(formData);
-      if (apiCall.status) {
-        console.log(apiCall, "apiCall");
-        const { startDate, endDate } = getDateRange(
-          query?.selectedRange,
-          currentDate
-        );
-        const fromDate = format(startDate, "yyyy-MM-dd");
-        const toDate = format(endDate, "yyyy-MM-dd");
-        callCancelBookingAPI(limit, offset, fromDate, toDate);
-        setloading(false);
-      } else {
-        setloading(false);
-        toast.error(apiCall?.message);
-      }
-    } catch (error) {
-      console.log(error);
-      setloading(false);
-      toast.error("Something went wrong. Please try again later.");
-    }
-  };
-
-  useEffect(() => {
-    if (selectedRowIds?.length > 0) {
-      handleUpdateStatus();
-    }
-  }, [selectedRowIds]);
 
   if (loading) {
     return <Loader />;
@@ -701,14 +801,10 @@ const ManagePayment = () => {
               rows={revenueDetails?.rows}
               columns={cancelBookingColumns}
               limit={limit}
-              rowKey={"cancelBookingVenueId"}
               offset={offset}
               total={totalPages}
               setOffset={setOffset}
               setLimit={setLimit}
-              rowSelection={true}
-              selectedRowIds={selectedRowIds}
-              setSelectedRowIds={setSelectedRowIds}
             />
           )}
         </div>

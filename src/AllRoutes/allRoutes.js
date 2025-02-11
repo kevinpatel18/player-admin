@@ -1,3 +1,4 @@
+import LiveBooking from "../Pages/LiveBooking/LiveBooking";
 import Login from "../Pages/Login/Login";
 import ManagePayment from "../Pages/Payment/ManagePayment";
 import RevenueSummary from "../Pages/RevenueSummary/RevenueSummary";
@@ -31,6 +32,11 @@ const protectedRoutes = [
     path: "/payment-management",
     exact: true,
     component: <ManagePayment />,
+  },
+  {
+    path: "/real-time-booking-list",
+    exact: true,
+    component: <LiveBooking />,
   },
 ];
 

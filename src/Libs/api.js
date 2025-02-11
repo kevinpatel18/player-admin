@@ -1,7 +1,7 @@
 // const baseUrl =
 // "https://fd8a6942-2a37-4632-8c05-bd8874f009d9.e1-us-east-azure.choreoapps.dev/";
-// const baseUrl = "http://localhost:8080/";
-const baseUrl = "https://pllayer-backend.onrender.com/";
+const baseUrl = "http://localhost:8080/";
+// const baseUrl = "https://pllayer-backend.onrender.com/";
 
 export const getAllSportDetails = async () => {
   const data = await fetch(`${baseUrl}sports`, {
@@ -335,6 +335,17 @@ export const getAllSlotByVenueCourtId = async (formData) => {
 export const updateVenueDetails = async (formData, venueId) => {
   const data = await fetch(`${baseUrl}updateVenueDetails/${venueId}`, {
     method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(formData),
+  });
+  const _data = await data.json();
+  return _data;
+};
+export const updateTransactionRefundStatus = async (formData) => {
+  const data = await fetch(`${baseUrl}updateTransactionRefundStatus`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },

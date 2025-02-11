@@ -23,11 +23,12 @@ const CustomTableContainer = ({
   console.log("expandedRowKeys: ", expandedRowKeys);
 
   const handleOnChange = (page) => {
+    console.log('page: ', page);
     setOffset(page);
   };
 
   const handleChangeSize = (current, size) => {
-    setOffset(1);
+    setOffset(0);
     setLimit(size);
   };
 
