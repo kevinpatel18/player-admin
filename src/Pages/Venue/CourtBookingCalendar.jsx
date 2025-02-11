@@ -81,7 +81,7 @@ export default function CourtBookingCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   console.log("currentDate: ", currentDate);
   const [allBookingDetails, setAllBookingDetails] = useState([]);
-  const [loading, setloading] = useState(false);
+  const [loading, setloading] = useState(true);
   const [timeSlots, setTimeSlots] = useState([]);
   const [selectedRow, setSelectedRow] = useState({});
   const [openModal, setOpenModal] = useState(false);
@@ -269,6 +269,7 @@ export default function CourtBookingCalendar() {
 
       const apiCall = await getAllVenue(query);
       if (apiCall.status) {
+        setloading(false);
         // setAllVenue(apiCall.data);
 
         setAllVenue(apiCall?.data);
@@ -409,6 +410,7 @@ export default function CourtBookingCalendar() {
   };
 
   const updateLocation = async (value) => {
+    setloading(true);
     setSelectedCity(value);
     try {
       let query = { location: value };
@@ -695,9 +697,11 @@ export default function CourtBookingCalendar() {
                     console.log(newValue);
                     updateSelectedCourt(newValue);
                   }}
+                  style={{ overflow: "auto" }}
                   scrollButtons
                   allowScrollButtonsMobile
-                  aria-label="scrollable force tabs example"
+                  className="custom-court"
+                  aria-label=" scrollable force tabs example"
                 >
                   {selectedSport?.courts?.map((court, i) => (
                     <Tab
