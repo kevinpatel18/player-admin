@@ -4,6 +4,7 @@ import ManagePayment from "../Pages/Payment/ManagePayment";
 import RevenueSummary from "../Pages/RevenueSummary/RevenueSummary";
 import ManageUser from "../Pages/User/ManageUser";
 import CourtBookingCalendar from "../Pages/Venue/CourtBookingCalendar";
+import VenueList from "../Pages/Venue/VenueList";
 
 const publicRoutes = [{ path: "/login", component: <Login /> }];
 
@@ -37,6 +38,11 @@ const protectedRoutes = [
     path: "/real-time-booking-list",
     exact: true,
     component: <LiveBooking />,
+  },
+  {
+    path: "/manage-venue",
+    exact: true,
+    component: <VenueList />,
   },
 ];
 
