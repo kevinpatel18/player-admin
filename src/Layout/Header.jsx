@@ -13,7 +13,7 @@ function classNames(...classes) {
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isLaptop } = useBreakPoints();
+  const { isLaptop, isTablet } = useBreakPoints();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarData, setSidebarData] = useState([]);
 
@@ -489,9 +489,24 @@ export default function Header() {
   return (
     <div class="" style={{ background: "rgb(255 255 255 /1)" }}>
       <nav class="flex px-4  md:shadow-lg items-center relative">
-        <div class="text-lg font-bold py-0 py-4">
+        <div
+          class={`text-lg font-bold py-0 py-4 flex items-center justify-between ${
+            isTablet && "w-full"
+          }`}
+        >
           <img alt="player" src={logo} className="h-8 w-auto" />
+          {isTablet && (
+            <LogOut
+              onClick={() => {
+                localStorage.clear();
+                navigate("/login");
+                window.location.reload();
+              }}
+              size={24}
+            />
+          )}
         </div>
+
         <ul class=" desktop-navbar nav-header md:px-2 ml-auto md:flex md:space-x-2 absolute md:relative top-full left-0 right-0">
           {sidebarData.map((item) =>
             item?.subMenu?.length > 0 ? (

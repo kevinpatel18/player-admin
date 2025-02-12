@@ -189,8 +189,8 @@ const MobileNavbar = () => {
             fill={
               location?.pathname === "/payment-management" ||
               activeTab === "payment-management"
-                ? "white"
-                : "black"
+                ? "black"
+                : "white"
             }
             xmlns="http://www.w3.org/2000/svg"
           >

@@ -332,7 +332,7 @@ const ManageUser = () => {
       )}
 
       {isTablet && (
-        <div className="flex justify-end mt-10">
+        <div className="flex justify-end mt-10 pr-4">
           <Button
             variant="outline"
             onClick={() => {

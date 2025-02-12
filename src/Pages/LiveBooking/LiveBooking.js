@@ -33,7 +33,7 @@ const LiveBooking = () => {
       return;
     }
 
-    const socket = new WebSocket("ws://localhost:8080");
+    const socket = new WebSocket("wss://pllayer-backend.onrender.com");
 
     socket.onopen = () => {
       console.log("WebSocket connected");
