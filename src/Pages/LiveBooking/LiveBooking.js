@@ -33,7 +33,9 @@ const LiveBooking = () => {
       return;
     }
 
-    const socket = new WebSocket("wss://pllayer-backend.onrender.com");
+    const socket = new WebSocket(
+      "wss://pllayer-backend-68514470993.us-central1.run.app"
+    );
 
     socket.onopen = () => {
       console.log("WebSocket connected");
