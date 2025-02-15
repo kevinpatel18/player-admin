@@ -21,6 +21,7 @@ const MyContextProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("contextData")) || {
       sportArray: [],
       location: {},
+      area: {},
       amenitiesArray: [],
       paymentMode: "",
       ownerName: "",

@@ -35,6 +35,19 @@ export const getLocationDetails = async () => {
   const _data = await data.json();
   return _data;
 };
+export const getAreaDetails = async (formData) => {
+  const data = await fetch(
+    `${baseUrl}areas?locationId=${formData?.locationId || ""}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const _data = await data.json();
+  return _data;
+};
 
 export const storeVenue = async (formData) => {
   const data = await fetch(`${baseUrl}storevenue`, {

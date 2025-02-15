@@ -3,23 +3,25 @@ import { Button, Input } from "reactstrap";
 import CommonVenueLayout from "../CommonVenueLayout";
 import { MyContext } from "../../../hooks/MyContextProvider";
 import { toast } from "react-toastify";
-import { getLocationDetails } from "../../../Libs/api";
+import { getAreaDetails } from "../../../Libs/api";
 import Loader from "../../../Component/Loader";
 
-const LocationStep = () => {
+const AreaStep = () => {
   const { contextData, updateData, updateStep } = useContext(MyContext);
 
-  const [allLocation, setAllLocation] = useState([]);
+  const [allArea, setAllArea] = useState([]);
   const [loading, setloading] = useState(true);
 
   const callAPI = useCallback(async () => {
     try {
-      const apiCall = await getLocationDetails();
+      const apiCall = await getAreaDetails({
+        locationId: contextData?.location?.locationId,
+      });
       if (apiCall.status) {
-        setAllLocation(
+        setAllArea(
           apiCall.data?.map((er) => ({
             ...er,
-            locationId: er?.locationid,
+            areaId: er?.areaid,
           }))
         );
         setloading(false);
@@ -38,19 +40,20 @@ const LocationStep = () => {
   }, []);
 
   const handleChange = (value) => {
+    console.log('value: ', value);
     let obj = { ...contextData };
-    obj.location = {
-      locationId: value?.locationId,
+    obj.area = {
+      areaId: value?.areaId,
       name: value?.name,
     };
     updateData(obj);
   };
 
   const handleNext = () => {
-    if (!contextData?.location?.locationId) {
-      toast.error("Please Select any One Location!");
+    if (!contextData?.area?.areaId) {
+      toast.error("Please Select any One Area!");
     } else {
-      updateStep("step11");
+      updateStep("step6");
     }
   };
 
@@ -62,40 +65,40 @@ const LocationStep = () => {
     <CommonVenueLayout>
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4">Venue Location (City)</h3>
+          <h3 className="text-xl font-semibold mb-4">Venue Area </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {allLocation?.map((location) => (
+            {allArea?.map((area) => (
               <div
-                key={location.name}
+                key={area.name}
                 onClick={() => {
-                  handleChange(location);
+                  handleChange(area);
                 }}
                 className={`flex items-center space-x-2 border rounded-md p-3 ${
-                  contextData?.location?.locationId === location?.locationId
+                  contextData?.area?.areaId === area?.areaId
                     ? "border-dark"
                     : ""
                 }`}
                 style={{
                   cursor: "pointer",
                   backgroundColor:
-                    contextData?.location?.locationId ===
-                      location?.locationId && "#F6F6F6",
+                    contextData?.area?.areaId ===
+                      area?.areaId && "#F6F6F6",
                 }}
               >
                 <Input
                   type="checkbox"
-                  id={location.name}
+                  id={area.name}
                   checked={
-                    contextData?.location?.locationId === location?.locationId
+                    contextData?.area?.areaId === area?.areaId
                       ? true
                       : false
                   }
                 />
                 <label
-                  htmlFor={location.name}
+                  htmlFor={area.name}
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  {location.name}
+                  {area.name}
                 </label>
               </div>
             ))}
@@ -125,4 +128,4 @@ const LocationStep = () => {
   );
 };
 
-export default LocationStep;
+export default AreaStep;

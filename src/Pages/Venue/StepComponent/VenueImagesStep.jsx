@@ -85,6 +85,7 @@ const VenueImagesStep = () => {
     formData.append("addressUrl", contextData?.addressUrl);
     formData.append("description", contextData?.aboutVenue);
     formData.append("locationId", contextData?.location?.locationId);
+    formData.append("areaId", contextData?.area?.areaId);
     formData.append(
       "amenities",
       JSON.stringify(contextData?.amenitiesArray?.map((er) => er?.amenitiesId))

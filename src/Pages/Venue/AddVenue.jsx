@@ -10,6 +10,7 @@ import AboutVenueStep from "./StepComponent/AboutVenueStep";
 import CancellationPolicyStep from "./StepComponent/CancellationPolicyStep";
 import VenueImagesStep from "./StepComponent/VenueImagesStep";
 import FinalStep from "./StepComponent/FinalStep";
+import AreaStep from "./StepComponent/AreaStep";
 const AddVenue = () => {
   const { step, updateStep, updateData } = useContext(MyContext);
 
@@ -19,6 +20,7 @@ const AddVenue = () => {
       updateData({
         sportArray: [],
         location: {},
+        area: {},
         amenitiesArray: [],
         paymentMode: "",
         ownerName: "",
@@ -49,6 +51,7 @@ const AddVenue = () => {
       {step === "step8" && <CancellationPolicyStep />}
       {step === "step9" && <VenueImagesStep />}
       {step === "step10" && <FinalStep />}
+      {step === "step11" && <AreaStep />}
     </div>
   );
 };
