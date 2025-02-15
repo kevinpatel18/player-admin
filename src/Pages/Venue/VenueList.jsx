@@ -6,20 +6,25 @@ import Loader from "../../Component/Loader";
 import { MyContext } from "../../hooks/MyContextProvider";
 import { set } from "date-fns";
 import { TextField } from "@mui/material";
-import { Filter, BookmarkX, Edit2Icon, Edit } from "lucide-react";
+import { Filter, BookmarkX, Edit2Icon, Edit, Plus } from "lucide-react";
 import { Button } from "reactstrap";
 import moment from "moment";
 import Box from "@mui/material/Box";
 import { Drawer } from "@mui/material";
 import useBreakPoints from "../../hooks/useBreakPoints";
+import { useNavigate } from "react-router-dom";
+import EditVenue from "./EditVenue";
 
 const VenueList = () => {
+  const navigate = useNavigate();
   const { isMobile, isTablet } = useBreakPoints();
   const [userDetails, setUserDetails] = useState([]);
   const [loading, setloading] = useState(true);
   const [limit, setLimit] = useState(10); // default slimit
   const [offset, setOffset] = useState(0); // default offset
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editModal, setEditModal] = useState(false);
+  const [singleData, setSingleData] = useState({});
   const [totalPages, setTotalPages] = useState(0);
   const [query, setQuery] = useState({
     name: "",
@@ -140,9 +145,10 @@ const VenueList = () => {
             }}
           >
             <Edit
-              //   onClick={() => {
-              //     handleEditSlotTiming(format(date, "EEEE"));
-              //   }}
+              onClick={() => {
+                setSingleData(cell);
+                setEditModal(true);
+              }}
               className="cursor-pointer text-white"
               size={18}
             />
@@ -255,86 +261,102 @@ const VenueList = () => {
     </Box>
   );
 
+  const handleCallBackVenueApi = () => {
+    callAPI(limit, offset);
+  };
+
   if (loading) {
     return <Loader />;
   }
 
   return (
     <div>
-      {!isTablet && (
-        <div className={`flex items-center gap-4 mt-10 px-7`}>
-          <TextField
-            type="text"
-            size="small"
-            id="outlined-controlled"
-            label={` Full Name`}
-            placeholder="Search for Full Name"
-            className="mt-4"
-            value={query?.name}
-            onChange={(event) => {
-              setQuery({ ...query, name: event.target.value });
-            }}
-          />
-          <TextField
-            type="number"
-            size="small"
-            id="outlined-controlled"
-            label={`Phone Number`}
-            placeholder="Search for Phone Number"
-            className="mt-4"
-            value={query?.phoneNumber}
-            onChange={(event) => {
-              setQuery({ ...query, phoneNumber: event.target.value });
-            }}
-          />
+      <div className="flex justify-between items-center">
+        {!isTablet && (
+          <div className={`flex items-center gap-4 mt-10 px-7`}>
+            <TextField
+              type="text"
+              size="small"
+              id="outlined-controlled"
+              label={` Full Name`}
+              placeholder="Search for Full Name"
+              className="mt-4"
+              value={query?.name}
+              onChange={(event) => {
+                setQuery({ ...query, name: event.target.value });
+              }}
+            />
+            <TextField
+              type="number"
+              size="small"
+              id="outlined-controlled"
+              label={`Phone Number`}
+              placeholder="Search for Phone Number"
+              className="mt-4"
+              value={query?.phoneNumber}
+              onChange={(event) => {
+                setQuery({ ...query, phoneNumber: event.target.value });
+              }}
+            />
 
+            <Button
+              variant="outline"
+              onClick={() => {
+                handleApplyFilter(limit, offset, query);
+              }}
+              style={{ padding: "8px 23px" }}
+              className="bg-black text-white hover:bg-gray-800 flex items-center rounded "
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filter
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setQuery({
+                  name: "",
+                  phoneNumber: "",
+                });
+                callAPI(10, 0);
+                setLimit(10);
+                setOffset(0);
+              }}
+              style={{ padding: "8px 23px" }}
+              className="bg-orange-600 text-white hover:bg-orange-800 flex items-center rounded "
+            >
+              <BookmarkX className="w-4 h-4 mr-2" />
+              Clear
+            </Button>
+          </div>
+        )}
+
+        {isTablet && (
+          <div className="flex justify-end mt-10">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDrawerOpen(true);
+              }}
+              style={{ padding: "10px 23px" }}
+              className="bg-black text-white hover:bg-gray-800 flex items-center rounded "
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Apply Filter
+            </Button>
+          </div>
+        )}
+
+        <div className="flex justify-center md:justify-end mt-10 mr-4">
           <Button
             variant="outline"
-            onClick={() => {
-              handleApplyFilter(limit, offset, query);
-            }}
-            style={{ padding: "8px 23px" }}
-            className="bg-black text-white hover:bg-gray-800 flex items-center rounded "
+            onClick={() => navigate("/add-venue")}
+            className="bg-black text-nowrap text-white hover:bg-gray-800 flex items-center px-4 py-2"
           >
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setQuery({
-                name: "",
-                phoneNumber: "",
-              });
-              callAPI(10, 0);
-              setLimit(10);
-              setOffset(0);
-            }}
-            style={{ padding: "8px 23px" }}
-            className="bg-orange-600 text-white hover:bg-orange-800 flex items-center rounded "
-          >
-            <BookmarkX className="w-4 h-4 mr-2" />
-            Clear
+            <Plus className="w-4 h-4 mr-2" />
+            Add Venue
           </Button>
         </div>
-      )}
-
-      {isTablet && (
-        <div className="flex justify-end mt-10">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setDrawerOpen(true);
-            }}
-            style={{ padding: "10px 23px" }}
-            className="bg-black text-white hover:bg-gray-800 flex items-center mb-3 rounded "
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Apply Filter
-          </Button>
-        </div>
-      )}
-
+      </div>
       <div className="p-4 table-responsive" style={{}}>
         <CustomTableContainer
           rows={userDetails}
@@ -356,6 +378,15 @@ const VenueList = () => {
       >
         {DrawerList}
       </Drawer>
+
+      {editModal && (
+        <EditVenue
+          open={editModal}
+          setOpen={setEditModal}
+          handleCallBackApi={handleCallBackVenueApi}
+          selectedVenue={singleData}
+        />
+      )}
     </div>
   );
 };

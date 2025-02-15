@@ -1,7 +1,7 @@
 // const baseUrl =
 // "https://fd8a6942-2a37-4632-8c05-bd8874f009d9.e1-us-east-azure.choreoapps.dev/";
-// const baseUrl = "http://localhost:8080/";
-const baseUrl = "https://pllayer-backend.onrender.com/";
+const baseUrl = "http://localhost:8080/";
+// const baseUrl = "https://pllayer-backend.onrender.com/";
 
 export const getAllSportDetails = async () => {
   const data = await fetch(`${baseUrl}sports`, {
@@ -49,20 +49,39 @@ export const storeVenue = async (formData) => {
 };
 
 export const getAllVenue = async (formData) => {
-  let api = formData?.userid
-    ? `${baseUrl}venues?userId=${formData?.userid || ""}&location=${
-        formData?.location || ""
-      }`
-    : `${baseUrl}venues?location=${formData?.location || ""}`;
+  if (formData.limit) {
+    let api = formData?.userid
+      ? `${baseUrl}venues?userId=${formData?.userid || ""}&location=${
+          formData?.location || ""
+        }&page=${formData?.offset}&page_size=${formData?.limit}`
+      : `${baseUrl}venues?location=${formData?.location || ""}&page=${
+          formData?.offset
+        }&page_size=${formData?.limit}`;
 
-  const data = await fetch(api, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  const _data = await data.json();
-  return _data;
+    const data = await fetch(api, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const _data = await data.json();
+    return _data;
+  } else {
+    let api = formData?.userid
+      ? `${baseUrl}venues?userId=${formData?.userid || ""}&location=${
+          formData?.location || ""
+        }`
+      : `${baseUrl}venues?location=${formData?.location || ""}`;
+
+    const data = await fetch(api, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const _data = await data.json();
+    return _data;
+  }
 };
 
 export const storeSlots = async (formData) => {

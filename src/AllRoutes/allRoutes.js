@@ -3,6 +3,7 @@ import Login from "../Pages/Login/Login";
 import ManagePayment from "../Pages/Payment/ManagePayment";
 import RevenueSummary from "../Pages/RevenueSummary/RevenueSummary";
 import ManageUser from "../Pages/User/ManageUser";
+import AddVenue from "../Pages/Venue/AddVenue";
 import CourtBookingCalendar from "../Pages/Venue/CourtBookingCalendar";
 import VenueList from "../Pages/Venue/VenueList";
 
@@ -43,6 +44,11 @@ const protectedRoutes = [
     path: "/manage-venue",
     exact: true,
     component: <VenueList />,
+  },
+  {
+    path: "/add-venue",
+    exact: true,
+    component: <AddVenue />,
   },
 ];
 
