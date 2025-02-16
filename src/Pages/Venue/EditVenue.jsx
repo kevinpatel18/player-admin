@@ -523,9 +523,9 @@ const EditVenue = ({ open, setOpen, handleCallBackApi, selectedVenue }) => {
                         }}
                       >
                         <MenuItem value={0}>0</MenuItem>
-                        <MenuItem value={50}>25</MenuItem>
+                        <MenuItem value={25}>25</MenuItem>
                         <MenuItem value={50}>50</MenuItem>
-                        <MenuItem value={50}>75</MenuItem>
+                        <MenuItem value={75}>75</MenuItem>
                         <MenuItem value={100}>100</MenuItem>
                       </Select>
                     </FormControl>
