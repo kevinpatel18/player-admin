@@ -51,6 +51,7 @@ import RecordNotFoundImage from "../../assets/Images/Record-Not-Found.png";
 // import EditVenueModal from "./EditVenueModal";
 import useBreakPoints from "../../hooks/useBreakPoints";
 import SlotUpdateModal from "./SlotUpdateModal";
+import TableLoader from "../../Component/TableLoader";
 
 export default function CourtBookingCalendar() {
   const navigate = useNavigate();
@@ -124,6 +125,7 @@ export default function CourtBookingCalendar() {
       const response = JSON.parse(event.data);
       if (response.type === "allBookingSlotResult") {
         if (response.status) {
+          setloading(false);
           setAllBookingDetails(response.data);
           let arr1 = response?.data?.bookingSlots?.map(
             (slot) => slot.startTime
@@ -494,7 +496,10 @@ export default function CourtBookingCalendar() {
               id="location-select"
               value={selectedCity}
               label="Location"
-              onChange={(e) => updateLocation(e.target.value)}
+              onChange={(e) => {
+                updateLocation(e.target.value);
+                setloading(true);
+              }}
             >
               {locationList?.map((item, i) => (
                 <MenuItem value={item?.name} key={i}>
@@ -513,6 +518,7 @@ export default function CourtBookingCalendar() {
             value={selectedVenue}
             label="Venue"
             onChange={(e) => {
+              setloading(true);
               updateSelectedVenue(e.target.value);
               updateSelectedCourt(
                 e.target.value?.sports?.[0]?.courts?.[0]?.venuecourtid
@@ -536,6 +542,7 @@ export default function CourtBookingCalendar() {
             value={selectedSport}
             label="Sport"
             onChange={(e) => {
+              setloading(true);
               updateSelectedSport(e.target.value);
               updateSelectedCourt(e.target.value?.courts?.[0]?.venuecourtid);
             }}
@@ -552,7 +559,7 @@ export default function CourtBookingCalendar() {
   );
 
   if (loading) {
-    return <Loader />;
+    return <TableLoader />;
   }
   return (
     <div style={{ width: "100%" }}>
@@ -605,7 +612,10 @@ export default function CourtBookingCalendar() {
                       id="location-select"
                       value={selectedCity}
                       label="Location"
-                      onChange={(e) => updateLocation(e.target.value)}
+                      onChange={(e) => {
+                        updateLocation(e.target.value);
+                        setloading(true);
+                      }}
                     >
                       {locationList?.map((item, i) => (
                         <MenuItem value={item?.name} key={i}>
@@ -624,6 +634,7 @@ export default function CourtBookingCalendar() {
                     value={selectedVenue}
                     label="Venue"
                     onChange={(e) => {
+                      setloading(true);
                       updateSelectedVenue(e.target.value);
                       updateSelectedCourt(
                         e.target.value?.sports?.[0]?.courts?.[0]?.venuecourtid
@@ -647,6 +658,7 @@ export default function CourtBookingCalendar() {
                     value={selectedSport}
                     label="Sport"
                     onChange={(e) => {
+                      setloading(true);
                       updateSelectedSport(e.target.value);
                       updateSelectedCourt(
                         e.target.value?.courts?.[0]?.venuecourtid
@@ -695,6 +707,7 @@ export default function CourtBookingCalendar() {
                   value={selectedCourt}
                   onChange={(event, newValue) => {
                     console.log(newValue);
+                    setloading(true);
                     updateSelectedCourt(newValue);
                   }}
                   style={{ overflow: "auto" }}
