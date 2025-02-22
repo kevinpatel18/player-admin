@@ -1,7 +1,7 @@
 // const baseUrl =
 // "https://fd8a6942-2a37-4632-8c05-bd8874f009d9.e1-us-east-azure.choreoapps.dev/";
-const baseUrl = "http://localhost:8080/";
-// const baseUrl = "https://pllayer-backend-68514470993.us-central1.run.app/";
+// const baseUrl = "http://localhost:8080/";
+const baseUrl = "https://pllayer-backend-68514470993.us-central1.run.app/";
 
 export const getAllSportDetails = async () => {
   const data = await fetch(`${baseUrl}sports`, {
