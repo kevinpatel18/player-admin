@@ -38,6 +38,7 @@ import {
 import Loader from "../../Component/Loader";
 import {
   getAllBookingSlots,
+  getAreaDetails,
   getAllVenue,
   getLocationDetails,
 } from "../../Libs/api";
@@ -72,6 +73,7 @@ export default function CourtBookingCalendar() {
   } = useContext(MyContext);
   console.log("selectedVenue: ", selectedVenue);
 
+  const [allArea, setAllArea] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const { isTablet, isMobile } = useBreakPoints();
   const wsRef = useRef(null);
@@ -87,6 +89,7 @@ export default function CourtBookingCalendar() {
   const [selectedRow, setSelectedRow] = useState({});
   const [openModal, setOpenModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [timingModal, setTimingModal] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -250,9 +253,9 @@ export default function CourtBookingCalendar() {
           locationId: er?.locationid,
         }));
         setLocationList(arr);
-
-        setSelectedCity(arr?.[0]?.name);
-        callAPI(arr?.[0]?.name);
+        localStorage.setItem("locationId", arr?.[0]?.locationid);
+        setSelectedLocation(arr?.[0]);
+        callAreaAPI(arr?.[0]?.name);
       } else {
         toast.error(apiCall?.message);
       }
@@ -262,9 +265,36 @@ export default function CourtBookingCalendar() {
     }
   }, []);
 
-  const callAPI = useCallback(async (locationName) => {
+  const callAreaAPI = useCallback(async (locationName) => {
+    console.log("locationName: ", locationName);
     try {
-      let query = { location: locationName || "" };
+      const apiCall = await getAreaDetails({
+        locationName: locationName,
+      });
+      if (apiCall.status) {
+        setAllArea(apiCall.data);
+        if (apiCall?.data?.[0]?.name) {
+          callAPI(locationName, apiCall?.data?.[0]?.name);
+
+          setSelectedCity(apiCall?.data?.[0]);
+          localStorage.setItem("areaId", apiCall?.data?.[0]?.areaid);
+        } else {
+          callAPI(locationName);
+        }
+        setloading(false);
+      } else {
+        toast.error(apiCall?.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  }, []);
+
+  const callAPI = useCallback(async (locationName, areaName) => {
+    console.log("locationName, areaName: ", locationName, areaName);
+    try {
+      let query = { location: locationName || "", areaName: areaName || "" };
       if (user?.role !== "admin") {
         query.userid = user?.userid;
       }
@@ -287,8 +317,6 @@ export default function CourtBookingCalendar() {
           );
           updateSelectedSport(apiCall?.data?.[0]?.sports?.[0]);
         }
-
-        setloading(false);
       } else {
         setloading(false);
 
@@ -368,54 +396,62 @@ export default function CourtBookingCalendar() {
     // allBookingCallAPI(formData);
   };
 
-  const handleCallBackVenueApi = async () => {
-    // callAPI();
-    // let formData = {
-    //   venueId: selectedVenue?.venueId,
-    //   venueCourtId: selectedCourt,
-    //   sportId: selectedSport?.sportid,
-    //   fromDate: moment(startDate).format("YYYY-MM-DD"),
-    //   toDate: moment(endDate).format("YYYY-MM-DD"),
-    // };
-    // setloading(true);
-    // allBookingCallAPI(formData);
-
-    try {
-      let query = { location: selectedCity || "" };
-      if (user?.role !== "admin") {
-        query.userid = user?.userid;
-      }
-
-      const apiCall = await getAllVenue(query);
-      if (apiCall.status) {
-        // setAllVenue(apiCall.data);
-
-        setAllVenue(apiCall?.data);
-
-        setloading(false);
-      } else {
-        setloading(false);
-
-        toast.error(apiCall?.message);
-      }
-    } catch (error) {
-      setloading(false);
-
-      console.log(error);
-      toast.error(error);
-    }
-  };
-
   const handleEditSlotTiming = (day) => {
     setTimingModal(true);
     setSelectedDay(day);
   };
 
-  const updateLocation = async (value) => {
+  const updateLocation = async (value, locationId) => {
+    // setloading(true);
+    setSelectedLocation(value);
+    localStorage.setItem("locationId", locationId);
+
+    // try {
+    //   let query = { location: value };
+    //   if (user?.role !== "admin") {
+    //     query.userid = user?.userid;
+    //   }
+
+    //   const apiCall = await getAllVenue(query);
+    //   if (apiCall.status) {
+    //     // setAllVenue(apiCall.data);
+
+    //     setAllVenue(apiCall?.data);
+
+    //     if (apiCall?.data?.length > 0) {
+    //       console.log(
+    //         "apiCall?.data?.[0]?.sports?.[0]?.courts: ",
+    //         apiCall?.data?.[0]?.sports?.[0]?.courts
+    //       );
+    //       updateSelectedVenue(apiCall?.data?.[0]);
+    //       updateSelectedCourt(
+    //         apiCall?.data?.[0]?.sports?.[0]?.courts?.[0]?.venuecourtid
+    //       );
+    //       updateSelectedSport(apiCall?.data?.[0]?.sports?.[0]);
+    //     }
+
+    //     setloading(false);
+    //   } else {
+    //     setloading(false);
+
+    //     toast.error(apiCall?.message);
+    //   }
+    // } catch (error) {
+    //   setloading(false);
+
+    //   console.log(error);
+    //   toast.error(error);
+    // }
+
+    callAreaAPI(value?.name);
+  };
+  const updateCity = async (value, areaid) => {
     setloading(true);
     setSelectedCity(value);
+    localStorage.setItem("areaId", areaid);
+
     try {
-      let query = { location: value };
+      let query = { location: selectedLocation?.name, areaName: value?.name };
       if (user?.role !== "admin") {
         query.userid = user?.userid;
       }
@@ -494,22 +530,42 @@ export default function CourtBookingCalendar() {
             <Select
               labelId="location-select-label"
               id="location-select"
-              value={selectedCity}
+              value={selectedLocation}
               label="Location"
               onChange={(e) => {
-                updateLocation(e.target.value);
+                updateLocation(e.target.value, e.target.value?.locationid);
+
                 setloading(true);
               }}
             >
               {locationList?.map((item, i) => (
-                <MenuItem value={item?.name} key={i}>
+                <MenuItem value={item} key={i}>
                   {item?.name}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
         )}
-
+        {user?.role === "admin" && (
+          <FormControl size="small" className="w-[200px] bg-white">
+            <InputLabel id="location-select-label">City</InputLabel>
+            <Select
+              labelId="location-select-label"
+              id="location-select"
+              value={selectedCity}
+              label="Location"
+              onChange={(e) => {
+                updateCity(e.target.value, e.target.value?.areaid);
+              }}
+            >
+              {allArea?.map((item, i) => (
+                <MenuItem value={item} key={i}>
+                  {item?.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
         <FormControl size="small" className="w-[200px]">
           <InputLabel id="venue-select-label">Venue</InputLabel>
           <Select
@@ -563,6 +619,134 @@ export default function CourtBookingCalendar() {
   }
   return (
     <div style={{ width: "100%" }}>
+      <div className="p-4">
+        {!isTablet && (
+          <div
+            className={`flex justify-start gap-5 items-center mb-4  ${
+              isMobile ? "flex-column gap-3" : ""
+            }`}
+          >
+            <div className="flex items-center space-x-2 bg-white rounded-md px-4 py-3 border-1 border-slate-300 ">
+              <ChevronLeft
+                className="w-5 h-5 text-gray-500 cursor-pointer"
+                onClick={handlePrevWeek}
+              />
+              <span className="text-sm font-medium">
+                {format(startDate, "d MMM")} - {format(endDate, "d MMM yyyy")}
+              </span>
+              <ChevronRight
+                className="w-5 h-5 text-gray-500 cursor-pointer"
+                onClick={handleNextWeek}
+              />
+            </div>
+
+            {user?.role === "admin" && (
+              <FormControl size="small" className="w-[200px] bg-white">
+                <InputLabel id="location-select-label">Location</InputLabel>
+                <Select
+                  labelId="location-select-label"
+                  id="location-select"
+                  value={selectedLocation}
+                  label="Location"
+                  onChange={(e) => {
+                    updateLocation(e.target.value, e.target.value?.locationid);
+                    setloading(true);
+                  }}
+                >
+                  {locationList?.map((item, i) => (
+                    <MenuItem value={item} key={i}>
+                      {item?.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+            {user?.role === "admin" && (
+              <FormControl size="small" className="w-[200px] bg-white">
+                <InputLabel id="location-select-label">City</InputLabel>
+                <Select
+                  labelId="location-select-label"
+                  id="location-select"
+                  value={selectedCity}
+                  label="Location"
+                  onChange={(e) => {
+                    updateCity(e.target.value, e.target.value?.areaid);
+                  }}
+                >
+                  {allArea?.map((item, i) => (
+                    <MenuItem value={item} key={i}>
+                      {item?.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            <FormControl size="small" className="w-[200px]">
+              <InputLabel id="venue-select-label">Venue</InputLabel>
+              <Select
+                labelId="venue-select-label"
+                id="venue-select"
+                value={selectedVenue}
+                label="Venue"
+                onChange={(e) => {
+                  setloading(true);
+                  updateSelectedVenue(e.target.value);
+                  updateSelectedCourt(
+                    e.target.value?.sports?.[0]?.courts?.[0]?.venuecourtid
+                  );
+                  updateSelectedSport(e.target.value?.sports?.[0]);
+                }}
+              >
+                {allVenue?.map((item, i) => (
+                  <MenuItem value={item} key={i}>
+                    {item?.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" className="w-[200px]">
+              <InputLabel id="sport-select-label">Sport</InputLabel>
+              <Select
+                labelId="sport-select-label"
+                id="sport-select"
+                value={selectedSport}
+                label="Sport"
+                onChange={(e) => {
+                  setloading(true);
+                  updateSelectedSport(e.target.value);
+                  updateSelectedCourt(
+                    e.target.value?.courts?.[0]?.venuecourtid
+                  );
+                }}
+              >
+                {selectedVenue?.sports?.map((item, i) => (
+                  <MenuItem value={item} key={i}>
+                    {item?.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+        )}
+
+        {isTablet && (
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDrawerOpen(true);
+              }}
+              style={{ padding: "10px 23px" }}
+              className="bg-black text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Apply Filter
+            </Button>
+          </div>
+        )}
+      </div>
       {allVenue?.length === 0 ? (
         <>
           <div className="flex flex-col w-full">
@@ -583,113 +767,6 @@ export default function CourtBookingCalendar() {
         <>
           <div className="p-4 ">
             {/* Filter */}
-            {!isTablet && (
-              <div
-                className={`flex justify-start gap-5 items-center mb-4  ${
-                  isMobile ? "flex-column gap-3" : ""
-                }`}
-              >
-                <div className="flex items-center space-x-2 bg-white rounded-md px-4 py-3 border-1 border-slate-300 ">
-                  <ChevronLeft
-                    className="w-5 h-5 text-gray-500 cursor-pointer"
-                    onClick={handlePrevWeek}
-                  />
-                  <span className="text-sm font-medium">
-                    {format(startDate, "d MMM")} -{" "}
-                    {format(endDate, "d MMM yyyy")}
-                  </span>
-                  <ChevronRight
-                    className="w-5 h-5 text-gray-500 cursor-pointer"
-                    onClick={handleNextWeek}
-                  />
-                </div>
-
-                {user?.role === "admin" && (
-                  <FormControl size="small" className="w-[200px] bg-white">
-                    <InputLabel id="location-select-label">Location</InputLabel>
-                    <Select
-                      labelId="location-select-label"
-                      id="location-select"
-                      value={selectedCity}
-                      label="Location"
-                      onChange={(e) => {
-                        updateLocation(e.target.value);
-                        setloading(true);
-                      }}
-                    >
-                      {locationList?.map((item, i) => (
-                        <MenuItem value={item?.name} key={i}>
-                          {item?.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-
-                <FormControl size="small" className="w-[200px]">
-                  <InputLabel id="venue-select-label">Venue</InputLabel>
-                  <Select
-                    labelId="venue-select-label"
-                    id="venue-select"
-                    value={selectedVenue}
-                    label="Venue"
-                    onChange={(e) => {
-                      setloading(true);
-                      updateSelectedVenue(e.target.value);
-                      updateSelectedCourt(
-                        e.target.value?.sports?.[0]?.courts?.[0]?.venuecourtid
-                      );
-                      updateSelectedSport(e.target.value?.sports?.[0]);
-                    }}
-                  >
-                    {allVenue?.map((item, i) => (
-                      <MenuItem value={item} key={i}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <FormControl size="small" className="w-[200px]">
-                  <InputLabel id="sport-select-label">Sport</InputLabel>
-                  <Select
-                    labelId="sport-select-label"
-                    id="sport-select"
-                    value={selectedSport}
-                    label="Sport"
-                    onChange={(e) => {
-                      setloading(true);
-                      updateSelectedSport(e.target.value);
-                      updateSelectedCourt(
-                        e.target.value?.courts?.[0]?.venuecourtid
-                      );
-                    }}
-                  >
-                    {selectedVenue?.sports?.map((item, i) => (
-                      <MenuItem value={item} key={i}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </div>
-            )}
-
-            {isTablet && (
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setDrawerOpen(true);
-                  }}
-                  style={{ padding: "10px 23px" }}
-                  className="bg-black text-white hover:bg-gray-800 flex items-center mb-3 rounded "
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Apply Filter
-                </Button>
-              </div>
-            )}
 
             <div
               className="border-1 border-slate-300 border-bottom-none bg-white"

@@ -24,11 +24,20 @@ import moment from "moment";
 import {
   getAllCancelBookingReport,
   getAllRevenueAnalysisReport,
+  getAllVenue,
+  getAreaDetails,
+  getLocationDetails,
   UpdateCancelBookingVenueStatus,
 } from "../../Libs/api";
 import CustomTableContainer from "../../Component/CustomTableContainer";
 import { formatIndianNumber } from "../../hooks/helper";
-import { Drawer, Select, MenuItem, FormControl } from "@mui/material";
+import {
+  Drawer,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers-pro/LocalizationProvider";
@@ -42,17 +51,21 @@ const RevenueSummary = () => {
   const [selectedTab, setSelectedTab] = useState("booking");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [revenueDetails, setRevenueDetails] = useState({});
-  console.log("revenueDetails: ", revenueDetails);
   const [selectedRowIds, setSelectedRowIds] = useState([]);
-  console.log("selectedRowIds: ", selectedRowIds);
   const [loading, setloading] = useState(true);
   const [limit, setLimit] = useState(10); // default slimit
   const [totalPages, setTotalPages] = useState(0);
   const [offset, setOffset] = useState(0); // default offset
+  const [allArea, setAllArea] = useState([]);
+  const [allVenue, setAllVenue] = useState([]);
+  const [locationList, setLocationList] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [query, setQuery] = useState({
     selectedRange: "week",
     dateRange: "",
+    selectedLocation: "",
+    selectedArea: "",
+    selectedVenue: "",
   });
   console.log("query: ", query);
 
@@ -131,54 +144,60 @@ const RevenueSummary = () => {
     }
   };
 
-  const callAPI = useCallback(async (limit, offset, startDate, endDate) => {
-    try {
-      setloading(true);
+  const callAPI = useCallback(
+    async (limit, offset, startDate, endDate, locationId, areaId, venueId) => {
+      try {
+        setloading(true);
 
-      const fromDate = moment(startDate).format("YYYY-MM-DD");
-      const toDate = moment(endDate).format("YYYY-MM-DD");
-      let userid = "";
-      if (user?.role !== "admin") {
-        userid = user?.userid;
-      }
-      let apiCall = await getAllRevenueAnalysisReport({
-        limit,
-        offset,
-        fromDate,
-        toDate,
-        userid,
-      });
-
-      if (apiCall.status) {
-        console.log(apiCall.data, "apiCall.data");
-        setRevenueDetails({
-          rows: apiCall.data,
-          groundRevenue: parseFloat(apiCall?.total_ground_revenue || 0).toFixed(
-            2
-          ),
-          playerRevneue: parseFloat(apiCall?.total_player_revenue || 0).toFixed(
-            2
-          ),
-          totalRevenue: parseFloat(
-            parseInt(apiCall?.total_player_revenue || 0) +
-              parseInt(apiCall?.total_ground_revenue || 0)
-          ).toFixed(2),
+        const fromDate = moment(startDate).format("YYYY-MM-DD");
+        const toDate = moment(endDate).format("YYYY-MM-DD");
+        let userid = "";
+        if (user?.role !== "admin") {
+          userid = user?.userid;
+        }
+        let apiCall = await getAllRevenueAnalysisReport({
+          limit,
+          offset,
+          fromDate,
+          toDate,
+          locationId,
+          areaId,
+          venueId,
+          userid,
         });
-        setTotalPages(apiCall?.pagination?.total_items);
+
+        if (apiCall.status) {
+          console.log(apiCall.data, "apiCall.data");
+          setRevenueDetails({
+            rows: apiCall.data,
+            groundRevenue: parseFloat(
+              apiCall?.total_ground_revenue || 0
+            ).toFixed(2),
+            playerRevneue: parseFloat(
+              apiCall?.total_player_revenue || 0
+            ).toFixed(2),
+            totalRevenue: parseFloat(
+              parseInt(apiCall?.total_player_revenue || 0) +
+                parseInt(apiCall?.total_ground_revenue || 0)
+            ).toFixed(2),
+          });
+          setTotalPages(apiCall?.pagination?.total_items);
+          setloading(false);
+        } else {
+          setloading(false);
+          toast.error(apiCall?.message);
+        }
+      } catch (error) {
+        console.log(error);
         setloading(false);
-      } else {
-        setloading(false);
-        toast.error(apiCall?.message);
+        toast.error("Something went wrong. Please try again later 1.");
       }
-    } catch (error) {
-      console.log(error);
-      setloading(false);
-      toast.error("Something went wrong. Please try again later 1.");
-    }
-    // eslint-disable-next-line
-  }, []);
+      // eslint-disable-next-line
+    },
+    []
+  );
   const callCancelBookingAPI = useCallback(
-    async (limit, offset, startDate, endDate) => {
+    async (limit, offset, startDate, endDate, locationId, areaId, venueId) => {
       try {
         setloading(true);
 
@@ -193,6 +212,9 @@ const RevenueSummary = () => {
           offset,
           fromDate,
           toDate,
+          locationId,
+          areaId,
+          venueId,
           userid,
         });
 
@@ -227,6 +249,79 @@ const RevenueSummary = () => {
     []
   );
 
+  const getAllLocation = useCallback(async () => {
+    try {
+      const apiCall = await getLocationDetails();
+      if (apiCall.status) {
+        let obj = { ...query };
+        setLocationList(apiCall.data);
+        localStorage.setItem("locationId", apiCall.data?.[0]?.locationid);
+        obj.selectedLocation = apiCall.data?.[0];
+        callAreaAPI(apiCall.data?.[0]?.name, obj);
+      } else {
+        toast.error(apiCall?.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  }, []);
+
+  const callAreaAPI = useCallback(async (locationName, obj) => {
+    console.log("locationName: ", locationName);
+    try {
+      const apiCall = await getAreaDetails({
+        locationName: locationName,
+      });
+      if (apiCall.status) {
+        setAllArea(apiCall.data);
+        if (apiCall?.data?.[0]?.name) {
+          obj.selectedArea = apiCall?.data?.[0];
+          callVenueAPI(locationName, apiCall?.data?.[0]?.name, obj);
+
+          localStorage.setItem("areaId", apiCall?.data?.[0]?.areaid);
+        } else {
+          callVenueAPI(locationName, "", obj);
+        }
+        setloading(false);
+      } else {
+        toast.error(apiCall?.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  }, []);
+  const callVenueAPI = useCallback(async (locationName, areaName, obj) => {
+    console.log("locationName: ", locationName);
+    try {
+      const apiCall = await getAllVenue({
+        location: locationName,
+        areaName: areaName,
+      });
+      if (apiCall.status) {
+        setAllVenue(apiCall.data);
+        if (apiCall?.data?.[0]?.venueId) {
+          obj.selectedVenue = apiCall?.data?.[0]?.venueId;
+
+          setQuery(obj);
+        } else {
+          setQuery(obj);
+        }
+        setloading(false);
+      } else {
+        toast.error(apiCall?.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    getAllLocation();
+  }, []);
+
   useEffect(() => {
     const { startDate, endDate } = getDateRange(
       query?.selectedRange,
@@ -237,13 +332,29 @@ const RevenueSummary = () => {
 
     if (query?.selectedRange !== "custom") {
       if (selectedTab === "booking") {
-        callAPI(limit, offset, fromDate, toDate);
+        callAPI(
+          limit,
+          offset,
+          fromDate,
+          toDate,
+          query?.selectedLocation?.locationid,
+          query?.selectedArea?.areaid,
+          query?.selectedVenue
+        );
       } else if (selectedTab === "cancel") {
-        callCancelBookingAPI(limit, offset, fromDate, toDate);
+        callCancelBookingAPI(
+          limit,
+          offset,
+          fromDate,
+          toDate,
+          query?.selectedLocation?.locationid,
+          query?.selectedArea?.areaid,
+          query?.selectedVenue
+        );
       }
     }
     // eslint-disable-next-line
-  }, [limit, offset, currentDate, query?.selectedRange, selectedTab]);
+  }, [limit, offset, currentDate, query, selectedTab]);
 
   useEffect(() => {
     if (query?.dateRange[0] && query?.dateRange[1]) {
@@ -257,13 +368,29 @@ const RevenueSummary = () => {
 
       if (query?.selectedRange === "custom") {
         if (selectedTab === "booking") {
-          callAPI(limit, offset, fromDate, toDate);
+          callAPI(
+            limit,
+            offset,
+            fromDate,
+            toDate,
+            query?.selectedLocation?.locationid,
+            query?.selectedArea?.areaid,
+            query?.selectedVenue?.venueId
+          );
         } else if (selectedTab === "cancel") {
-          callCancelBookingAPI(limit, offset, fromDate, toDate);
+          callCancelBookingAPI(
+            limit,
+            offset,
+            fromDate,
+            toDate,
+            query?.selectedLocation?.locationid,
+            query?.selectedArea?.areaid,
+            query?.selectedVenue?.venueId
+          );
         }
       }
     }
-  }, [limit, offset, query?.dateRange, selectedTab]);
+  }, [limit, offset, query, selectedTab]);
 
   const bookingColumns = [
     {
@@ -457,10 +584,99 @@ const RevenueSummary = () => {
           isMobile ? "flex-column gap-3" : ""
         }`}
       >
-        <FormControl variant="outlined" size="small">
+        {user?.role === "admin" && (
+          <FormControl size="small" fullWidth className=" w-[200px] bg-white ">
+            <InputLabel className="custom-mx" id="location-select-label">
+              Location
+            </InputLabel>
+            <Select
+              labelId="location-select-label"
+              id="location-select"
+              value={query?.selectedLocation}
+              className="custom-mx"
+              label="Location"
+              onChange={(e) => {
+                let obj = { ...query };
+
+                obj.selectedLocation = e.target.value;
+                obj.selectedArea = "";
+                obj.selectedVenue = "";
+
+                localStorage.setItem("locationId", e.target.value?.locationid);
+                callAreaAPI(e.target.value?.name, obj);
+              }}
+            >
+              {locationList?.map((item, i) => (
+                <MenuItem value={item} key={i}>
+                  {item?.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+        {user?.role === "admin" && (
+          <FormControl fullWidth size="small" className="w-[200px] bg-white">
+            <InputLabel className="custom-mx" id="location-select-label">
+              City
+            </InputLabel>
+            <Select
+              labelId="location-select-label"
+              className="custom-mx"
+              id="location-select"
+              value={query?.selectedArea}
+              label="Location"
+              onChange={(e) => {
+                let obj = { ...query };
+                obj.selectedArea = e.target.value;
+                obj.selectedVenue = "";
+
+                localStorage.setItem("areaId", e.target.value?.areaid);
+                callVenueAPI(
+                  query?.selectedLocation?.name,
+                  e.target.value?.name,
+                  obj
+                );
+              }}
+            >
+              {allArea?.map((item, i) => (
+                <MenuItem value={item} key={i}>
+                  {item?.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        <FormControl fullWidth size="small" className="w-[200px]">
+          <InputLabel className="custom-mx" id="venue-select-label">
+            Venue
+          </InputLabel>
           <Select
+            labelId="venue-select-label"
+            className="custom-mx"
+            id="venue-select"
+            value={query?.selectedVenue}
+            label="Venue"
+            onChange={(e) => {
+              setloading(true);
+              setQuery({ ...query, selectedVenue: e.target.value });
+            }}
+          >
+            <MenuItem value={""}>All</MenuItem>
+            {allVenue?.map((item, i) => (
+              <MenuItem value={item.venueId} key={i}>
+                {item?.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth variant="outlined" size="small">
+          <Select
+            fullWidth
             value={query?.selectedRange}
             onChange={handleRangeChange}
+            className="custom-mx"
             sx={{
               width: 265,
             }}
@@ -471,9 +687,13 @@ const RevenueSummary = () => {
             <MenuItem value="custom">Custom</MenuItem>
           </Select>
         </FormControl>
-        <div className={`flex justify-between px-10 flex-col gap-3 w-full`}>
+        <div className={` flex justify-between  flex-col gap-3 w-full`}>
           {query?.selectedRange === "custom" ? (
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <LocalizationProvider
+              className="custom-mx"
+              fullWidth
+              dateAdapter={AdapterDayjs}
+            >
               <DemoContainer
                 sx={{ width: "100%" }}
                 components={["DateRangePicker"]}
@@ -487,7 +707,7 @@ const RevenueSummary = () => {
               </DemoContainer>
             </LocalizationProvider>
           ) : (
-            <div className="flex items-center space-x-2 bg-black rounded-md px-4 py-3 ">
+            <div className="custom-mx flex items-center space-x-2 bg-black rounded-md px-4 py-3 ">
               <ChevronLeft
                 className="w-5 h-5 text-white cursor-pointer"
                 onClick={handlePrevWeek}
@@ -611,6 +831,89 @@ const RevenueSummary = () => {
       {!isTablet && (
         <div>
           <div className={`flex justify-end items-center gap-4 mt-10`}>
+            {user?.role === "admin" && (
+              <FormControl size="small" className="w-[200px] bg-white">
+                <InputLabel id="location-select-label">Location</InputLabel>
+                <Select
+                  labelId="location-select-label"
+                  id="location-select"
+                  value={query?.selectedLocation}
+                  label="Location"
+                  onChange={(e) => {
+                    let obj = { ...query };
+
+                    obj.selectedLocation = e.target.value;
+                    obj.selectedArea = "";
+                    obj.selectedVenue = "";
+
+                    localStorage.setItem(
+                      "locationId",
+                      e.target.value?.locationid
+                    );
+                    callAreaAPI(e.target.value?.name, obj);
+                  }}
+                >
+                  <MenuItem value={""}>All</MenuItem>
+                  {locationList?.map((item, i) => (
+                    <MenuItem value={item} key={i}>
+                      {item?.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+            {user?.role === "admin" && (
+              <FormControl size="small" className="w-[200px] bg-white">
+                <InputLabel id="location-select-label">City</InputLabel>
+                <Select
+                  labelId="location-select-label"
+                  id="location-select"
+                  value={query?.selectedArea}
+                  label="Location"
+                  onChange={(e) => {
+                    let obj = { ...query };
+                    obj.selectedArea = e.target.value;
+                    obj.selectedVenue = "";
+
+                    localStorage.setItem("areaId", e.target.value?.areaid);
+                    callVenueAPI(
+                      query?.selectedLocation?.name,
+                      e.target.value?.name,
+                      obj
+                    );
+                  }}
+                >
+                  <MenuItem value={""}>All</MenuItem>
+                  {allArea?.map((item, i) => (
+                    <MenuItem value={item} key={i}>
+                      {item?.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            <FormControl size="small" className="w-[200px]">
+              <InputLabel id="venue-select-label">Venue</InputLabel>
+              <Select
+                labelId="venue-select-label"
+                id="venue-select"
+                value={query?.selectedVenue}
+                label="Venue"
+                onChange={(e) => {
+                  setloading(true);
+                  setQuery({ ...query, selectedVenue: e.target.value });
+                }}
+              >
+                <MenuItem value={""}>All</MenuItem>
+                {allVenue?.map((item, i) => (
+                  <MenuItem value={item.venueId} key={i}>
+                    {item?.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <FormControl variant="outlined" size="small">
               <Select
                 value={query?.selectedRange}

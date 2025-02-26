@@ -37,7 +37,9 @@ export const getLocationDetails = async () => {
 };
 export const getAreaDetails = async (formData) => {
   const data = await fetch(
-    `${baseUrl}areas?locationId=${formData?.locationId || ""}`,
+    `${baseUrl}areas?locationId=${formData?.locationId || ""}&locationName=${
+      formData.locationName || ""
+    }`,
     {
       method: "GET",
       headers: {
@@ -66,10 +68,12 @@ export const getAllVenue = async (formData) => {
     let api = formData?.userid
       ? `${baseUrl}venues?userId=${formData?.userid || ""}&location=${
           formData?.location || ""
-        }&page=${formData?.offset}&page_size=${formData?.limit}`
+        }&page=${formData?.offset}&page_size=${formData?.limit}&areaName=${
+          formData?.areaName || ""
+        }`
       : `${baseUrl}venues?location=${formData?.location || ""}&page=${
           formData?.offset
-        }&page_size=${formData?.limit}`;
+        }&page_size=${formData?.limit}&areaName=${formData?.areaName || ""}`;
 
     const data = await fetch(api, {
       method: "GET",
@@ -83,8 +87,10 @@ export const getAllVenue = async (formData) => {
     let api = formData?.userid
       ? `${baseUrl}venues?userId=${formData?.userid || ""}&location=${
           formData?.location || ""
-        }`
-      : `${baseUrl}venues?location=${formData?.location || ""}`;
+        }&areaName=${formData?.areaName || ""}`
+      : `${baseUrl}venues?location=${formData?.location || ""}&areaName=${
+          formData?.areaName || ""
+        }`;
 
     const data = await fetch(api, {
       method: "GET",
@@ -210,8 +216,16 @@ export const getAllRevenueAnalysisReport = async (formData) => {
         formData?.limit
       }&from_date=${formData?.fromDate}&to_date=${
         formData?.toDate
-      }&venueOwnerId=${formData?.userid || ""} `
-    : `${baseUrl}bookingVenueReport?page=${formData?.offset}&page_size=${formData?.limit}&from_date=${formData?.fromDate}&to_date=${formData?.toDate}`;
+      }&venueOwnerId=${formData?.userid || ""}&locationId=${
+        formData?.locationId || ""
+      }&areaId=${formData?.areaId || ""}&venueId=${formData?.venueId || ""} `
+    : `${baseUrl}bookingVenueReport?page=${formData?.offset}&page_size=${
+        formData?.limit
+      }&from_date=${formData?.fromDate}&to_date=${
+        formData?.toDate
+      }&locationId=${formData?.locationId || ""}&areaId=${
+        formData?.areaId || ""
+      }&venueId=${formData?.venueId || ""}`;
 
   const data = await fetch(api, {
     method: "GET",
@@ -267,8 +281,12 @@ export const getAllCancelBookingReport = async (formData) => {
         formData?.limit
       }&from_date=${formData?.fromDate}&to_date=${
         formData?.toDate
-      }&venueOwnerId=${formData.userid || ""} `
-    : `${baseUrl}cancelBookingReport?page=${formData?.offset}&page_size=${formData?.limit}&from_date=${formData?.fromDate}&to_date=${formData?.toDate} `;
+      }&venueOwnerId=${formData.userid || ""}&locationId=${
+        formData?.locationId || ""
+      }&areaId=${formData?.areaId || ""}&venueId=${formData?.venueId || ""} `
+    : `${baseUrl}cancelBookingReport?page=${formData?.offset}&page_size=${formData?.limit}&from_date=${formData?.fromDate}&to_date=${formData?.toDate}&locationId=${
+        formData?.locationId || ""
+      }&areaId=${formData?.areaId || ""}&venueId=${formData?.venueId || ""} `;
 
   const data = await fetch(api, {
     method: "GET",
