@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 import Loader from "../../Component/Loader";
 import { Phone, User } from "lucide-react";
 import { MyContext } from "../../hooks/MyContextProvider";
+import Swal from "sweetalert2";
 
 const EditModal = ({
   open,
@@ -234,32 +235,46 @@ const EditModal = ({
     }
   };
 
-  const handleCancelBooking = async () => {
-    let arr = [];
-    arr?.push(selectedRow?.row?.bookingvenueid);
+  const handleDelete = async () => {
+    await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        let arr = [];
+        arr?.push(selectedRow?.row?.bookingvenueid);
 
-    let formData = {
-      bookingVenueId: JSON.stringify(arr),
-      message: "Slot Cancel By Venue Admin",
-    };
+        let formData = {
+          bookingVenueId: JSON.stringify(arr),
+          message: "Slot Cancel By Venue Admin",
+        };
 
-    setloading(true);
+        setloading(true);
 
-    try {
-      const apiCall = await updateCancelBooking(formData);
-      if (apiCall.status) {
-        console.log(apiCall, "apiCall");
+        try {
+          const apiCall = await updateCancelBooking(formData);
+          if (apiCall.status) {
+            console.log(apiCall, "apiCall");
 
-        setloading(false);
-        setOpen(false);
-        handleCallBackApi();
-      } else {
-        toast.error(apiCall?.message);
+            setloading(false);
+            setOpen(false);
+            handleCallBackApi();
+          } else {
+            setloading(false);
+            toast.error(apiCall?.message);
+          }
+        } catch (error) {
+          setloading(false);
+          console.log(error);
+          toast.error(error);
+        }
       }
-    } catch (error) {
-      console.log(error);
-      toast.error(error);
-    }
+    });
   };
 
   return (
@@ -337,7 +352,7 @@ const EditModal = ({
                 selectedRow?.available && (
                   <button
                     onClick={() => {
-                      handleCancelBooking();
+                      handleDelete();
                     }}
                     class="mt-3 view-button"
                   >

@@ -44,6 +44,9 @@ import { LocalizationProvider } from "@mui/x-date-pickers-pro/LocalizationProvid
 import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Loader from "../../Component/Loader";
+import Swal from "sweetalert2";
+
+
 
 const RevenueSummary = () => {
   const { user } = useContext(MyContext);
@@ -64,7 +67,7 @@ const RevenueSummary = () => {
     selectedRange: "week",
     dateRange: "",
     selectedLocation: "",
-    selectedArea: "",
+    selectedSport: "",
     selectedVenue: null,
   });
   console.log("query: ", query);
@@ -145,7 +148,15 @@ const RevenueSummary = () => {
   };
 
   const callAPI = useCallback(
-    async (limit, offset, startDate, endDate, locationId, areaId, venueId) => {
+    async (
+      limit,
+      offset,
+      startDate,
+      endDate,
+      locationId,
+      venueSportId,
+      venueId
+    ) => {
       try {
         setloading(true);
 
@@ -161,7 +172,7 @@ const RevenueSummary = () => {
           fromDate,
           toDate,
           locationId,
-          areaId,
+          venueSportId,
           venueId,
           userid,
         });
@@ -174,11 +185,14 @@ const RevenueSummary = () => {
               apiCall?.total_ground_revenue || 0
             ).toFixed(2),
             playerRevneue: parseFloat(
-              apiCall?.total_player_revenue || 0
+              apiCall?.total_player_revenue -
+                +apiCall?.total_player_revenue * 0.01 || 0
             ).toFixed(2),
             totalRevenue: parseFloat(
-              parseInt(apiCall?.total_player_revenue || 0) +
-                parseInt(apiCall?.total_ground_revenue || 0)
+              parseFloat(
+                apiCall?.total_player_revenue -
+                  +apiCall?.total_player_revenue * 0.01 || 0
+              ).toFixed(2) + parseInt(apiCall?.total_ground_revenue || 0)
             ).toFixed(2),
           });
           setTotalPages(apiCall?.pagination?.total_items);
@@ -197,7 +211,15 @@ const RevenueSummary = () => {
     []
   );
   const callCancelBookingAPI = useCallback(
-    async (limit, offset, startDate, endDate, locationId, areaId, venueId) => {
+    async (
+      limit,
+      offset,
+      startDate,
+      endDate,
+      locationId,
+      venueSportId,
+      venueId
+    ) => {
       try {
         setloading(true);
 
@@ -213,7 +235,7 @@ const RevenueSummary = () => {
           fromDate,
           toDate,
           locationId,
-          areaId,
+          venueSportId,
           venueId,
           userid,
         });
@@ -226,11 +248,14 @@ const RevenueSummary = () => {
               apiCall?.total_ground_revenue || 0
             ).toFixed(2),
             playerRevneue: parseFloat(
-              apiCall?.total_player_revenue || 0
+              apiCall?.total_player_revenue -
+                +apiCall?.total_player_revenue * 0.01 || 0
             ).toFixed(2),
             totalRevenue: parseFloat(
-              parseInt(apiCall?.total_player_revenue || 0) +
-                parseInt(apiCall?.total_ground_revenue || 0)
+              parseFloat(
+                apiCall?.total_player_revenue -
+                  +apiCall?.total_player_revenue * 0.01 || 0
+              ).toFixed(2) + parseInt(apiCall?.total_ground_revenue || 0)
             ).toFixed(2),
           });
           setTotalPages(apiCall?.pagination?.total_items);
@@ -260,11 +285,11 @@ const RevenueSummary = () => {
             (er) => +er?.locationid === +localStorage.getItem("locationId")
           );
           obj.selectedLocation = locationId;
-          callAreaAPI(locationId?.name, obj);
+          callVenueAPI(locationId?.name, obj);
         } else {
           obj.selectedLocation = apiCall.data?.[0];
 
-          callAreaAPI(apiCall.data?.[0]?.name, obj);
+          callVenueAPI(apiCall.data?.[0]?.name, obj);
           localStorage.setItem("locationId", apiCall.data?.[0]?.locationid);
         }
       } else {
@@ -277,50 +302,17 @@ const RevenueSummary = () => {
     }
   }, []);
 
-  const callAreaAPI = useCallback(async (locationName, obj) => {
-    console.log("locationName: ", locationName);
-    try {
-      const apiCall = await getAreaDetails({
-        locationName: locationName,
-      });
-      if (apiCall.status) {
-        setAllArea(apiCall.data);
-        if (apiCall?.data?.[0]?.name) {
-          if (localStorage.getItem("locationId")) {
-            let areaId = apiCall.data?.find(
-              (er) => +er?.areaid === +localStorage.getItem("areaId")
-            );
-            obj.selectedArea = areaId;
-            callVenueAPI(locationName, areaId?.name, obj);
-          } else {
-            obj.selectedArea = apiCall?.data?.[0];
-            callVenueAPI(locationName, apiCall?.data?.[0]?.name, obj);
-
-            localStorage.setItem("areaId", apiCall?.data?.[0]?.areaid);
-          }
-        } else {
-          callVenueAPI(locationName, "", obj);
-        }
-      } else {
-        setloading(false);
-        toast.error(apiCall?.message);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error(error);
-    }
-  }, []);
-  const callVenueAPI = useCallback(async (locationName, areaName, obj) => {
+  const callVenueAPI = useCallback(async (locationName, obj) => {
     console.log("locationName: ", locationName);
     try {
       const apiCall = await getAllVenue({
         location: locationName,
-        areaName: areaName,
       });
       if (apiCall.status) {
         setAllVenue(apiCall.data);
         if (apiCall?.data?.[0]?.venueId) {
-          obj.selectedVenue = apiCall?.data?.[0]?.venueId;
+          obj.selectedVenue = apiCall?.data?.[0];
+          obj.selectedSport = apiCall?.data?.[0]?.sports?.[0];
 
           setQuery(obj);
         } else {
@@ -336,11 +328,16 @@ const RevenueSummary = () => {
   }, []);
 
   useEffect(() => {
-    getAllLocation();
+    if (user?.role === "admin") {
+      getAllLocation();
+    }
   }, []);
 
   useEffect(() => {
-    if (query?.selectedVenue === "" || query?.selectedVenue) {
+    if (
+      query?.selectedVenue === "" ||
+      (query?.selectedVenue && user?.role === "admin")
+    ) {
       const { startDate, endDate } = getDateRange(
         query?.selectedRange,
         currentDate
@@ -356,8 +353,8 @@ const RevenueSummary = () => {
             fromDate,
             toDate,
             query?.selectedLocation?.locationid,
-            query?.selectedArea?.areaid,
-            query?.selectedVenue
+            query?.selectedSport?.sportid,
+            query?.selectedVenue?.venueId
           );
         } else if (selectedTab === "cancel") {
           callCancelBookingAPI(
@@ -366,8 +363,8 @@ const RevenueSummary = () => {
             fromDate,
             toDate,
             query?.selectedLocation?.locationid,
-            query?.selectedArea?.areaid,
-            query?.selectedVenue
+            query?.selectedSport?.sportid,
+            query?.selectedVenue?.venueId
           );
         }
       }
@@ -376,7 +373,10 @@ const RevenueSummary = () => {
   }, [limit, offset, currentDate, query, selectedTab]);
 
   useEffect(() => {
-    if (query?.selectedVenue === "" || query?.selectedVenue) {
+    if (
+      query?.selectedVenue === "" ||
+      (query?.selectedVenue && user?.role === "admin")
+    ) {
       if (query?.dateRange[0] && query?.dateRange[1]) {
         const start = dayjs(query?.dateRange[0]);
         const end = dayjs(query?.dateRange[1]);
@@ -394,7 +394,7 @@ const RevenueSummary = () => {
               fromDate,
               toDate,
               query?.selectedLocation?.locationid,
-              query?.selectedArea?.areaid,
+              query?.selectedSport?.sportid,
               query?.selectedVenue?.venueId
             );
           } else if (selectedTab === "cancel") {
@@ -404,9 +404,50 @@ const RevenueSummary = () => {
               fromDate,
               toDate,
               query?.selectedLocation?.locationid,
-              query?.selectedArea?.areaid,
+              query?.selectedSport?.sportid,
               query?.selectedVenue?.venueId
             );
+          }
+        }
+      }
+    }
+  }, [limit, offset, query, selectedTab]);
+
+  useEffect(() => {
+    if (user?.role !== "admin") {
+      const { startDate, endDate } = getDateRange(
+        query?.selectedRange,
+        currentDate
+      );
+      const fromDate = format(startDate, "yyyy-MM-dd");
+      const toDate = format(endDate, "yyyy-MM-dd");
+
+      if (query?.selectedRange !== "custom") {
+        if (selectedTab === "booking") {
+          callAPI(limit, offset, fromDate, toDate);
+        } else if (selectedTab === "cancel") {
+          callCancelBookingAPI(limit, offset, fromDate, toDate);
+        }
+      }
+    }
+    // eslint-disable-next-line
+  }, [limit, offset, currentDate, query, selectedTab]);
+  useEffect(() => {
+    if (user?.role !== "admin") {
+      if (query?.dateRange[0] && query?.dateRange[1]) {
+        const start = dayjs(query?.dateRange[0]);
+        const end = dayjs(query?.dateRange[1]);
+
+        const fromDate = start.format("YYYY-MM-DD");
+        console.log("fromDate: ", fromDate);
+        const toDate = end.format("YYYY-MM-DD");
+        console.log("toDate: ", toDate);
+
+        if (query?.selectedRange === "custom") {
+          if (selectedTab === "booking") {
+            callAPI(limit, offset, fromDate, toDate);
+          } else if (selectedTab === "cancel") {
+            callCancelBookingAPI(limit, offset, fromDate, toDate);
           }
         }
       }
@@ -435,13 +476,13 @@ const RevenueSummary = () => {
       },
     },
 
-    {
-      title: "Venue",
-      render: (cell) => {
-        return <span>{cell?.venue?.name}</span>;
-      },
-      key: "venue.name",
-    },
+    // {
+    //   title: "Venue",
+    //   render: (cell) => {
+    //     return <span>{cell?.venue?.name}</span>;
+    //   },
+    //   key: "venue.name",
+    // },
     {
       title: "Court ",
       render: (cell) => {
@@ -449,13 +490,13 @@ const RevenueSummary = () => {
       },
       key: "venueCourt.courtName",
     },
-    {
-      title: "Sport",
-      render: (cell) => {
-        return <span>{cell?.venueSport?.name}</span>;
-      },
-      key: "venueSport.name",
-    },
+    // {
+    //   title: "Sport",
+    //   render: (cell) => {
+    //     return <span>{cell?.venueSport?.name}</span>;
+    //   },
+    //   key: "venueSport.name",
+    // },
     {
       title: "Start Time",
       dataIndex: "startTime",
@@ -478,7 +519,15 @@ const RevenueSummary = () => {
     },
     {
       title: "Player Amount",
-      dataIndex: "playerAmount",
+      render: (cell) => {
+        return (
+          <span>
+            {parseFloat(
+              +cell?.playerAmount - +cell?.playerAmount * 0.01 || 0
+            ).toFixed(2)}
+          </span>
+        );
+      },
       key: "playerAmount",
     },
   ];
@@ -504,13 +553,13 @@ const RevenueSummary = () => {
       },
     },
 
-    {
-      title: "Venue",
-      render: (cell) => {
-        return <span>{cell?.venue?.name}</span>;
-      },
-      key: "venue.name",
-    },
+    // {
+    //   title: "Venue",
+    //   render: (cell) => {
+    //     return <span>{cell?.venue?.name}</span>;
+    //   },
+    //   key: "venue.name",
+    // },
     {
       title: "Court ",
       render: (cell) => {
@@ -518,13 +567,13 @@ const RevenueSummary = () => {
       },
       key: "venueCourt.courtName",
     },
-    {
-      title: "Sport",
-      render: (cell) => {
-        return <span>{cell?.venueSport?.name}</span>;
-      },
-      key: "venueSport.name",
-    },
+    // {
+    //   title: "Sport",
+    //   render: (cell) => {
+    //     return <span>{cell?.venueSport?.name}</span>;
+    //   },
+    //   key: "venueSport.name",
+    // },
     {
       title: "Start Time",
       dataIndex: "startTime",
@@ -547,7 +596,15 @@ const RevenueSummary = () => {
     },
     {
       title: "Player Amount",
-      dataIndex: "playerAmount",
+      render: (cell) => {
+        return (
+          <span>
+            {parseFloat(
+              +cell?.playerAmount - +cell?.playerAmount * 0.01 || 0
+            ).toFixed(2)}
+          </span>
+        );
+      },
       key: "playerAmount",
     },
     {
@@ -620,11 +677,11 @@ const RevenueSummary = () => {
                 let obj = { ...query };
 
                 obj.selectedLocation = e.target.value;
-                obj.selectedArea = "";
+                obj.selectedSport = "";
                 obj.selectedVenue = "";
 
                 localStorage.setItem("locationId", e.target.value?.locationid);
-                callAreaAPI(e.target.value?.name, obj);
+                callVenueAPI(e.target.value?.name, obj);
               }}
             >
               {locationList?.map((item, i) => (
@@ -635,31 +692,25 @@ const RevenueSummary = () => {
             </Select>
           </FormControl>
         )}
+
         {user?.role === "admin" && (
-          <FormControl fullWidth size="small" className="w-[200px] bg-white">
-            <InputLabel className="custom-mx" id="location-select-label">
-              City
+          <FormControl fullWidth size="small" className="w-[200px]">
+            <InputLabel className="custom-mx" id="venue-select-label">
+              Venue
             </InputLabel>
             <Select
-              labelId="location-select-label"
+              labelId="venue-select-label"
               className="custom-mx"
-              id="location-select"
-              value={query?.selectedArea}
-              label="Location"
+              id="venue-select"
+              value={query?.selectedVenue}
+              label="Venue"
               onChange={(e) => {
-                let obj = { ...query };
-                obj.selectedArea = e.target.value;
-                obj.selectedVenue = "";
-
-                localStorage.setItem("areaId", e.target.value?.areaid);
-                callVenueAPI(
-                  query?.selectedLocation?.name,
-                  e.target.value?.name,
-                  obj
-                );
+                setloading(true);
+                setQuery({ ...query, selectedVenue: e.target.value });
               }}
             >
-              {allArea?.map((item, i) => (
+              <MenuItem value={""}>All</MenuItem>
+              {allVenue?.map((item, i) => (
                 <MenuItem value={item} key={i}>
                   {item?.name}
                 </MenuItem>
@@ -667,31 +718,6 @@ const RevenueSummary = () => {
             </Select>
           </FormControl>
         )}
-
-        <FormControl fullWidth size="small" className="w-[200px]">
-          <InputLabel className="custom-mx" id="venue-select-label">
-            Venue
-          </InputLabel>
-          <Select
-            labelId="venue-select-label"
-            className="custom-mx"
-            id="venue-select"
-            value={query?.selectedVenue}
-            label="Venue"
-            onChange={(e) => {
-              setloading(true);
-              setQuery({ ...query, selectedVenue: e.target.value });
-            }}
-          >
-            <MenuItem value={""}>All</MenuItem>
-            {allVenue?.map((item, i) => (
-              <MenuItem value={item.venueId} key={i}>
-                {item?.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
         <FormControl fullWidth variant="outlined" size="small">
           <Select
             fullWidth
@@ -864,14 +890,14 @@ const RevenueSummary = () => {
                     let obj = { ...query };
 
                     obj.selectedLocation = e.target.value;
-                    obj.selectedArea = "";
+                    obj.selectedSport = "";
                     obj.selectedVenue = "";
 
                     localStorage.setItem(
                       "locationId",
                       e.target.value?.locationid
                     );
-                    callAreaAPI(e.target.value?.name, obj);
+                    callVenueAPI(e.target.value?.name, obj);
                   }}
                 >
                   <MenuItem value={""}>All</MenuItem>
@@ -884,28 +910,24 @@ const RevenueSummary = () => {
               </FormControl>
             )}
             {user?.role === "admin" && (
-              <FormControl size="small" className="w-[200px] bg-white">
-                <InputLabel id="location-select-label">City</InputLabel>
+              <FormControl size="small" className="w-[200px]">
+                <InputLabel id="venue-select-label">Venue</InputLabel>
                 <Select
-                  labelId="location-select-label"
-                  id="location-select"
-                  value={query?.selectedArea}
-                  label="Location"
+                  labelId="venue-select-label"
+                  id="venue-select"
+                  value={query?.selectedVenue}
+                  label="Venue"
                   onChange={(e) => {
-                    let obj = { ...query };
-                    obj.selectedArea = e.target.value;
-                    obj.selectedVenue = "";
-
-                    localStorage.setItem("areaId", e.target.value?.areaid);
-                    callVenueAPI(
-                      query?.selectedLocation?.name,
-                      e.target.value?.name,
-                      obj
-                    );
+                    setloading(true);
+                    setQuery({
+                      ...query,
+                      selectedVenue: e.target.value,
+                      selectedSport: e.target.value?.sports?.[0],
+                    });
                   }}
                 >
                   <MenuItem value={""}>All</MenuItem>
-                  {allArea?.map((item, i) => (
+                  {allVenue?.map((item, i) => (
                     <MenuItem value={item} key={i}>
                       {item?.name}
                     </MenuItem>
@@ -913,22 +935,20 @@ const RevenueSummary = () => {
                 </Select>
               </FormControl>
             )}
-
             <FormControl size="small" className="w-[200px]">
-              <InputLabel id="venue-select-label">Venue</InputLabel>
+              <InputLabel id="sport-select-label">Sport</InputLabel>
               <Select
-                labelId="venue-select-label"
-                id="venue-select"
-                value={query?.selectedVenue}
-                label="Venue"
+                labelId="sport-select-label"
+                id="sport-select"
+                value={query?.selectedSport}
+                label="Sport"
                 onChange={(e) => {
                   setloading(true);
-                  setQuery({ ...query, selectedVenue: e.target.value });
+                  setQuery({ ...query, selectedSport: e.target.value });
                 }}
               >
-                <MenuItem value={""}>All</MenuItem>
-                {allVenue?.map((item, i) => (
-                  <MenuItem value={item.venueId} key={i}>
+                {query?.selectedVenue?.sports?.map((item, i) => (
+                  <MenuItem value={item} key={i}>
                     {item?.name}
                   </MenuItem>
                 ))}

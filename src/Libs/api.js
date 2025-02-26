@@ -218,13 +218,15 @@ export const getAllRevenueAnalysisReport = async (formData) => {
         formData?.toDate
       }&venueOwnerId=${formData?.userid || ""}&locationId=${
         formData?.locationId || ""
-      }&areaId=${formData?.areaId || ""}&venueId=${formData?.venueId || ""} `
+      }&venueSportId=${formData?.venueSportId || ""}&venueId=${
+        formData?.venueId || ""
+      } `
     : `${baseUrl}bookingVenueReport?page=${formData?.offset}&page_size=${
         formData?.limit
       }&from_date=${formData?.fromDate}&to_date=${
         formData?.toDate
-      }&locationId=${formData?.locationId || ""}&areaId=${
-        formData?.areaId || ""
+      }&locationId=${formData?.locationId || ""}&venueSportId=${
+        formData?.venueSportId || ""
       }&venueId=${formData?.venueId || ""}`;
 
   const data = await fetch(api, {
@@ -283,10 +285,16 @@ export const getAllCancelBookingReport = async (formData) => {
         formData?.toDate
       }&venueOwnerId=${formData.userid || ""}&locationId=${
         formData?.locationId || ""
-      }&areaId=${formData?.areaId || ""}&venueId=${formData?.venueId || ""} `
-    : `${baseUrl}cancelBookingReport?page=${formData?.offset}&page_size=${formData?.limit}&from_date=${formData?.fromDate}&to_date=${formData?.toDate}&locationId=${
-        formData?.locationId || ""
-      }&areaId=${formData?.areaId || ""}&venueId=${formData?.venueId || ""} `;
+      }&venueSportId=${formData?.venueSportId || ""}&venueId=${
+        formData?.venueId || ""
+      } `
+    : `${baseUrl}cancelBookingReport?page=${formData?.offset}&page_size=${
+        formData?.limit
+      }&from_date=${formData?.fromDate}&to_date=${
+        formData?.toDate
+      }&locationId=${formData?.locationId || ""}&venueSportId=${
+        formData?.venueSportId || ""
+      }&venueId=${formData?.venueId || ""} `;
 
   const data = await fetch(api, {
     method: "GET",

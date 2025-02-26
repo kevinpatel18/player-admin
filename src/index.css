@@ -99,3 +99,6 @@ code {
   height: 96px;
   position: relative;
 }
+.css-1g04pbp-MuiModal-root {
+  z-index: 999 !important;
+}

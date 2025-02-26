@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Badge, Dropdown, Space, Table, Pagination } from "antd";
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 const CustomTableContainer = ({
   rows,
@@ -23,7 +24,7 @@ const CustomTableContainer = ({
   console.log("expandedRowKeys: ", expandedRowKeys);
 
   const handleOnChange = (page) => {
-    console.log('page: ', page);
+    console.log("page: ", page);
     setOffset(page);
   };
 
@@ -53,7 +54,7 @@ const CustomTableContainer = ({
           selectedRowKeys: [...selectedRowIds, ...selectedKey],
           onChange: (selectedKeys) => {
             console.log("selectedKeys: ", selectedKeys);
-            setSelectedRowIds(selectedKeys);
+            // setSelectedRowIds(selectedKeys);
           },
           defaultSelectedRowKeys: selectedKey,
           getCheckboxProps: (row) => ({
@@ -94,6 +95,21 @@ const CustomTableContainer = ({
     }
   });
 
+  const handleDelete = async (itemId) => {
+    await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setSelectedRowIds(itemId);
+      }
+    });
+  };
   return (
     <div>
       {columns2 ? (
@@ -120,7 +136,8 @@ const CustomTableContainer = ({
             selectedRowKeys: [...selectedRowIds, ...selectedKey],
             onChange: (selectedKeys) => {
               console.log("selectedKeys: ", selectedKeys);
-              setSelectedRowIds(selectedKeys);
+              // setSelectedRowIds(selectedKeys);
+              handleDelete(selectedKeys);
             },
             defaultSelectedRowKeys: selectedKey,
             getCheckboxProps: (row) => ({
