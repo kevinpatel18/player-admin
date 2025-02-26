@@ -54,6 +54,10 @@ import useBreakPoints from "../../hooks/useBreakPoints";
 import SlotUpdateModal from "./SlotUpdateModal";
 import TableLoader from "../../Component/TableLoader";
 
+import * as FileSaver from "file-saver";
+import * as XLSX from "xlsx";
+
+
 export default function CourtBookingCalendar() {
   const navigate = useNavigate();
   const {
@@ -84,6 +88,8 @@ export default function CourtBookingCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   console.log("currentDate: ", currentDate);
   const [allBookingDetails, setAllBookingDetails] = useState([]);
+  const [allTodayCount, setAllTodayCount] = useState([]);
+  console.log("allBookingDetails: ", allBookingDetails);
   const [loading, setloading] = useState(true);
   const [timeSlots, setTimeSlots] = useState([]);
   const [selectedRow, setSelectedRow] = useState({});
@@ -130,6 +136,14 @@ export default function CourtBookingCalendar() {
         if (response.status) {
           setloading(false);
           setAllBookingDetails(response.data);
+          const today = new Date().toISOString().split("T")[0]; // Get today's date in "YYYY-MM-DD" format
+
+          const todaySlots = response?.data?.bookingSlots?.filter(
+            (slot) => slot.date === today && slot.userName
+          );
+
+          setAllTodayCount(todaySlots);
+
           let arr1 = response?.data?.bookingSlots?.map(
             (slot) => slot.startTime
           );
@@ -613,6 +627,37 @@ export default function CourtBookingCalendar() {
       </div>
     </Box>
   );
+  const fileType =
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
+  const fileExtension = ".xlsx";
+
+  const downloadExcel = () => {
+    const fileName = `Today-Booking-Report`;
+    let apiData = [];
+    let columnWidths = [];
+
+    apiData = allTodayCount?.map((er) => ({
+      Date: moment(er?.date, "YYYY-MM-DD").format("DD-MM-YYYY"),
+      'Start Time': er?.startTime,
+      'End Time': er?.endTime,
+      "Price": er.price,
+      "Username": er.userName,
+      "Mobile No": er.phoneNumber,
+    }));
+
+    columnWidths = [30, 30, 30, 30, 30, 30, 30, 30];
+
+    const ws = XLSX.utils.json_to_sheet(apiData);
+
+    ws["!cols"] = columnWidths.map((width) => ({ wch: width }));
+
+    const wb = { Sheets: { data: ws }, SheetNames: ["data"] };
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const data = new Blob([excelBuffer], { type: fileType });
+    FileSaver.saveAs(data, fileName + fileExtension);
+  
+
+  }
 
   if (loading) {
     return <TableLoader />;
@@ -746,6 +791,32 @@ export default function CourtBookingCalendar() {
             </Button>
           </div>
         )}
+      </div>
+
+      <div className="px-4">
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+          
+            style={{ padding: "10px 23px" }}
+            className="bg-black text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+          >
+            Today Revenue -{" "}
+            {allTodayCount?.reduce((total, num) => total + num.price, 0)} |{" "}
+            Slots -{allTodayCount?.length}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+             downloadExcel()
+            }}
+            style={{ padding: "10px 23px" }}
+            className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+          >
+            Export Excel
+          </Button>
+        
+        </div>
       </div>
       {allVenue?.length === 0 ? (
         <>
