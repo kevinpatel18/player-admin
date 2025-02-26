@@ -65,7 +65,7 @@ const RevenueSummary = () => {
     dateRange: "",
     selectedLocation: "",
     selectedArea: "",
-    selectedVenue: "",
+    selectedVenue: null,
   });
   console.log("query: ", query);
 
@@ -255,10 +255,20 @@ const RevenueSummary = () => {
       if (apiCall.status) {
         let obj = { ...query };
         setLocationList(apiCall.data);
-        localStorage.setItem("locationId", apiCall.data?.[0]?.locationid);
-        obj.selectedLocation = apiCall.data?.[0];
-        callAreaAPI(apiCall.data?.[0]?.name, obj);
+        if (localStorage.getItem("locationId")) {
+          let locationId = apiCall.data?.find(
+            (er) => +er?.locationid === +localStorage.getItem("locationId")
+          );
+          obj.selectedLocation = locationId;
+          callAreaAPI(locationId?.name, obj);
+        } else {
+          obj.selectedLocation = apiCall.data?.[0];
+
+          callAreaAPI(apiCall.data?.[0]?.name, obj);
+          localStorage.setItem("locationId", apiCall.data?.[0]?.locationid);
+        }
       } else {
+        setloading(false);
         toast.error(apiCall?.message);
       }
     } catch (error) {
@@ -276,15 +286,23 @@ const RevenueSummary = () => {
       if (apiCall.status) {
         setAllArea(apiCall.data);
         if (apiCall?.data?.[0]?.name) {
-          obj.selectedArea = apiCall?.data?.[0];
-          callVenueAPI(locationName, apiCall?.data?.[0]?.name, obj);
+          if (localStorage.getItem("locationId")) {
+            let areaId = apiCall.data?.find(
+              (er) => +er?.areaid === +localStorage.getItem("areaId")
+            );
+            obj.selectedArea = areaId;
+            callVenueAPI(locationName, areaId?.name, obj);
+          } else {
+            obj.selectedArea = apiCall?.data?.[0];
+            callVenueAPI(locationName, apiCall?.data?.[0]?.name, obj);
 
-          localStorage.setItem("areaId", apiCall?.data?.[0]?.areaid);
+            localStorage.setItem("areaId", apiCall?.data?.[0]?.areaid);
+          }
         } else {
           callVenueAPI(locationName, "", obj);
         }
-        setloading(false);
       } else {
+        setloading(false);
         toast.error(apiCall?.message);
       }
     } catch (error) {
@@ -308,7 +326,6 @@ const RevenueSummary = () => {
         } else {
           setQuery(obj);
         }
-        setloading(false);
       } else {
         toast.error(apiCall?.message);
       }
@@ -323,50 +340,15 @@ const RevenueSummary = () => {
   }, []);
 
   useEffect(() => {
-    const { startDate, endDate } = getDateRange(
-      query?.selectedRange,
-      currentDate
-    );
-    const fromDate = format(startDate, "yyyy-MM-dd");
-    const toDate = format(endDate, "yyyy-MM-dd");
+    if (query?.selectedVenue === "" || query?.selectedVenue) {
+      const { startDate, endDate } = getDateRange(
+        query?.selectedRange,
+        currentDate
+      );
+      const fromDate = format(startDate, "yyyy-MM-dd");
+      const toDate = format(endDate, "yyyy-MM-dd");
 
-    if (query?.selectedRange !== "custom") {
-      if (selectedTab === "booking") {
-        callAPI(
-          limit,
-          offset,
-          fromDate,
-          toDate,
-          query?.selectedLocation?.locationid,
-          query?.selectedArea?.areaid,
-          query?.selectedVenue
-        );
-      } else if (selectedTab === "cancel") {
-        callCancelBookingAPI(
-          limit,
-          offset,
-          fromDate,
-          toDate,
-          query?.selectedLocation?.locationid,
-          query?.selectedArea?.areaid,
-          query?.selectedVenue
-        );
-      }
-    }
-    // eslint-disable-next-line
-  }, [limit, offset, currentDate, query, selectedTab]);
-
-  useEffect(() => {
-    if (query?.dateRange[0] && query?.dateRange[1]) {
-      const start = dayjs(query?.dateRange[0]);
-      const end = dayjs(query?.dateRange[1]);
-
-      const fromDate = start.format("YYYY-MM-DD");
-      console.log("fromDate: ", fromDate);
-      const toDate = end.format("YYYY-MM-DD");
-      console.log("toDate: ", toDate);
-
-      if (query?.selectedRange === "custom") {
+      if (query?.selectedRange !== "custom") {
         if (selectedTab === "booking") {
           callAPI(
             limit,
@@ -375,7 +357,7 @@ const RevenueSummary = () => {
             toDate,
             query?.selectedLocation?.locationid,
             query?.selectedArea?.areaid,
-            query?.selectedVenue?.venueId
+            query?.selectedVenue
           );
         } else if (selectedTab === "cancel") {
           callCancelBookingAPI(
@@ -385,8 +367,47 @@ const RevenueSummary = () => {
             toDate,
             query?.selectedLocation?.locationid,
             query?.selectedArea?.areaid,
-            query?.selectedVenue?.venueId
+            query?.selectedVenue
           );
+        }
+      }
+    }
+    // eslint-disable-next-line
+  }, [limit, offset, currentDate, query, selectedTab]);
+
+  useEffect(() => {
+    if (query?.selectedVenue === "" || query?.selectedVenue) {
+      if (query?.dateRange[0] && query?.dateRange[1]) {
+        const start = dayjs(query?.dateRange[0]);
+        const end = dayjs(query?.dateRange[1]);
+
+        const fromDate = start.format("YYYY-MM-DD");
+        console.log("fromDate: ", fromDate);
+        const toDate = end.format("YYYY-MM-DD");
+        console.log("toDate: ", toDate);
+
+        if (query?.selectedRange === "custom") {
+          if (selectedTab === "booking") {
+            callAPI(
+              limit,
+              offset,
+              fromDate,
+              toDate,
+              query?.selectedLocation?.locationid,
+              query?.selectedArea?.areaid,
+              query?.selectedVenue?.venueId
+            );
+          } else if (selectedTab === "cancel") {
+            callCancelBookingAPI(
+              limit,
+              offset,
+              fromDate,
+              toDate,
+              query?.selectedLocation?.locationid,
+              query?.selectedArea?.areaid,
+              query?.selectedVenue?.venueId
+            );
+          }
         }
       }
     }
