@@ -46,8 +46,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Loader from "../../Component/Loader";
 import Swal from "sweetalert2";
 
-
-
 const RevenueSummary = () => {
   const { user } = useContext(MyContext);
   const { isMobile, isTablet } = useBreakPoints();
@@ -64,10 +62,11 @@ const RevenueSummary = () => {
   const [locationList, setLocationList] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [query, setQuery] = useState({
-    selectedRange: "week",
+    selectedRange: "today",
     dateRange: "",
     selectedLocation: "",
     selectedSport: "",
+    selectedCourts: "All",
     selectedVenue: null,
   });
   console.log("query: ", query);
@@ -155,7 +154,8 @@ const RevenueSummary = () => {
       endDate,
       locationId,
       venueSportId,
-      venueId
+      venueId,
+      courtId
     ) => {
       try {
         setloading(true);
@@ -174,11 +174,24 @@ const RevenueSummary = () => {
           locationId,
           venueSportId,
           venueId,
+          courtId,
           userid,
         });
 
         if (apiCall.status) {
           console.log(apiCall.data, "apiCall.data");
+          console.log(
+            "apiCall?.total_player_revenue: ",
+            apiCall?.total_player_revenue
+          );
+          console.log(
+            +parseFloat(
+              apiCall?.total_player_revenue -
+                +apiCall?.total_player_revenue * 0.01 || 0
+            ).toFixed(2) + +parseInt(apiCall?.total_ground_revenue || 0),
+            "apiCall?.total_ground_revenue: ",
+            apiCall?.total_ground_revenue
+          );
           setRevenueDetails({
             rows: apiCall.data,
             groundRevenue: parseFloat(
@@ -189,10 +202,10 @@ const RevenueSummary = () => {
                 +apiCall?.total_player_revenue * 0.01 || 0
             ).toFixed(2),
             totalRevenue: parseFloat(
-              parseFloat(
+              +parseFloat(
                 apiCall?.total_player_revenue -
                   +apiCall?.total_player_revenue * 0.01 || 0
-              ).toFixed(2) + parseInt(apiCall?.total_ground_revenue || 0)
+              ).toFixed(2) + +parseInt(apiCall?.total_ground_revenue || 0)
             ).toFixed(2),
           });
           setTotalPages(apiCall?.pagination?.total_items);
@@ -218,7 +231,8 @@ const RevenueSummary = () => {
       endDate,
       locationId,
       venueSportId,
-      venueId
+      venueId,
+      courtId
     ) => {
       try {
         setloading(true);
@@ -237,6 +251,7 @@ const RevenueSummary = () => {
           locationId,
           venueSportId,
           venueId,
+          courtId,
           userid,
         });
 
@@ -252,10 +267,10 @@ const RevenueSummary = () => {
                 +apiCall?.total_player_revenue * 0.01 || 0
             ).toFixed(2),
             totalRevenue: parseFloat(
-              parseFloat(
+              +parseFloat(
                 apiCall?.total_player_revenue -
                   +apiCall?.total_player_revenue * 0.01 || 0
-              ).toFixed(2) + parseInt(apiCall?.total_ground_revenue || 0)
+              ).toFixed(2) + +parseInt(apiCall?.total_ground_revenue || 0)
             ).toFixed(2),
           });
           setTotalPages(apiCall?.pagination?.total_items);
@@ -354,7 +369,8 @@ const RevenueSummary = () => {
             toDate,
             query?.selectedLocation?.locationid,
             query?.selectedSport?.sportid,
-            query?.selectedVenue?.venueId
+            query?.selectedVenue?.venueId,
+            query?.selectedCourts !== "All" && query?.selectedCourts
           );
         } else if (selectedTab === "cancel") {
           callCancelBookingAPI(
@@ -364,7 +380,8 @@ const RevenueSummary = () => {
             toDate,
             query?.selectedLocation?.locationid,
             query?.selectedSport?.sportid,
-            query?.selectedVenue?.venueId
+            query?.selectedVenue?.venueId,
+            query?.selectedCourts !== "All" && query?.selectedCourts
           );
         }
       }
@@ -395,7 +412,8 @@ const RevenueSummary = () => {
               toDate,
               query?.selectedLocation?.locationid,
               query?.selectedSport?.sportid,
-              query?.selectedVenue?.venueId
+              query?.selectedVenue?.venueId,
+              query?.selectedCourts !== "All" && query?.selectedCourts
             );
           } else if (selectedTab === "cancel") {
             callCancelBookingAPI(
@@ -405,7 +423,8 @@ const RevenueSummary = () => {
               toDate,
               query?.selectedLocation?.locationid,
               query?.selectedSport?.sportid,
-              query?.selectedVenue?.venueId
+              query?.selectedVenue?.venueId,
+              query?.selectedCourts !== "All" && query?.selectedCourts
             );
           }
         }
@@ -518,7 +537,7 @@ const RevenueSummary = () => {
       key: "groundAmount",
     },
     {
-      title: "Player Amount",
+      title: "Pllayer Amount",
       render: (cell) => {
         return (
           <span>
@@ -595,7 +614,7 @@ const RevenueSummary = () => {
       key: "groundAmount",
     },
     {
-      title: "Player Amount",
+      title: "Pllayer Amount",
       render: (cell) => {
         return (
           <span>
@@ -706,7 +725,11 @@ const RevenueSummary = () => {
               label="Venue"
               onChange={(e) => {
                 setloading(true);
-                setQuery({ ...query, selectedVenue: e.target.value });
+                setQuery({
+                  ...query,
+                  selectedVenue: e.target.value,
+                  selectedCourts: "All",
+                });
               }}
             >
               <MenuItem value={""}>All</MenuItem>
@@ -718,6 +741,57 @@ const RevenueSummary = () => {
             </Select>
           </FormControl>
         )}
+
+        <FormControl fullWidth size="small" className="w-[200px]">
+          <InputLabel className="custom-mx" id="sport-select-label">
+            Sport
+          </InputLabel>
+          <Select
+            labelId="sport-select-label"
+            id="sport-select"
+            className="custom-mx"
+            value={query?.selectedSport}
+            label="Sport"
+            onChange={(e) => {
+              setloading(true);
+              setQuery({
+                ...query,
+                selectedSport: e.target.value,
+                selectedCourts: "All",
+              });
+            }}
+          >
+            {query?.selectedVenue?.sports?.map((item, i) => (
+              <MenuItem value={item} key={i}>
+                {item?.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth size="small" className="w-[200px]">
+          <InputLabel className="custom-mx" id="sport-select-label">
+            Courts
+          </InputLabel>
+          <Select
+            labelId="sport-select-label"
+            id="sport-select"
+            className="custom-mx"
+            value={query?.selectedCourts}
+            label="Sport"
+            onChange={(e) => {
+              setloading(true);
+              setQuery({ ...query, selectedCourts: e.target.value });
+            }}
+          >
+            <MenuItem value={"All"}>All</MenuItem>
+            {query?.selectedSport?.courts?.map((item, i) => (
+              <MenuItem value={item?.venuecourtid} key={i}>
+                {item?.courtname}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         <FormControl fullWidth variant="outlined" size="small">
           <Select
             fullWidth
@@ -844,7 +918,7 @@ const RevenueSummary = () => {
                 <RefreshCcw className="w-5 h-5 text-orange-500" />
               </div>
               <h2 className="text-xl text-orange-500 font-medium">
-                Player Collection
+                Pllayer Collection
               </h2>
             </div>
             <div className="flex items-baseline">
@@ -923,6 +997,7 @@ const RevenueSummary = () => {
                       ...query,
                       selectedVenue: e.target.value,
                       selectedSport: e.target.value?.sports?.[0],
+                      selectedCourts: "All",
                     });
                   }}
                 >
@@ -944,12 +1019,36 @@ const RevenueSummary = () => {
                 label="Sport"
                 onChange={(e) => {
                   setloading(true);
-                  setQuery({ ...query, selectedSport: e.target.value });
+                  setQuery({
+                    ...query,
+                    selectedSport: e.target.value,
+                    selectedCourts: "All",
+                  });
                 }}
               >
                 {query?.selectedVenue?.sports?.map((item, i) => (
                   <MenuItem value={item} key={i}>
                     {item?.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" className="w-[200px]">
+              <InputLabel id="sport-select-label">Courts</InputLabel>
+              <Select
+                labelId="sport-select-label"
+                id="sport-select"
+                value={query?.selectedCourts}
+                label="Sport"
+                onChange={(e) => {
+                  setloading(true);
+                  setQuery({ ...query, selectedCourts: e.target.value });
+                }}
+              >
+                <MenuItem value={"All"}>All</MenuItem>
+                {query?.selectedSport?.courts?.map((item, i) => (
+                  <MenuItem value={item?.venuecourtid} key={i}>
+                    {item?.courtname}
                   </MenuItem>
                 ))}
               </Select>

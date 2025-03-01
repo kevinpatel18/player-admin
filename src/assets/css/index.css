@@ -426,3 +426,10 @@ label {
 .custom-mx {
   margin: 0px 20px !important;
 }
+
+.custom-table> thead > tr > th {
+  border : 0.5px solid black;
+}
+.custom-table> tbody > tr > td {
+  border : 0.5px solid black;
+}

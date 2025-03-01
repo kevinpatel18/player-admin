@@ -481,7 +481,12 @@ const EditModal = ({
                   {selectedRow?.row?.pendingAmount}
                 </p>
               ) : (
-                ""
+                <p
+                  className="flex justify-start items-center gap-2 font-extrabold mt-2"
+                  style={{ fontSize: 20 }}
+                >
+                  Pending Amount : &nbsp; 0
+                </p>
               )}
 
               <button

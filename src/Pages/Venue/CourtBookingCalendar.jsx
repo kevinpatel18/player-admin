@@ -56,7 +56,7 @@ import TableLoader from "../../Component/TableLoader";
 
 import * as FileSaver from "file-saver";
 import * as XLSX from "xlsx";
-
+import EditVenueModal from "./EditVenueModal";
 
 export default function CourtBookingCalendar() {
   const navigate = useNavigate();
@@ -86,6 +86,8 @@ export default function CourtBookingCalendar() {
   const [allVenue, setAllVenue] = useState([]);
   const [locationList, setLocationList] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [venueModal, setVenueModal] = useState(false);
+
   console.log("currentDate: ", currentDate);
   const [allBookingDetails, setAllBookingDetails] = useState([]);
   const [allTodayCount, setAllTodayCount] = useState([]);
@@ -96,7 +98,6 @@ export default function CourtBookingCalendar() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
   const [timingModal, setTimingModal] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const startDate = startOfWeek(currentDate);
@@ -269,32 +270,7 @@ export default function CourtBookingCalendar() {
         setLocationList(arr);
         localStorage.setItem("locationId", arr?.[0]?.locationid);
         setSelectedLocation(arr?.[0]);
-        callAreaAPI(arr?.[0]?.name);
-      } else {
-        toast.error(apiCall?.message);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error(error);
-    }
-  }, []);
-
-  const callAreaAPI = useCallback(async (locationName) => {
-    console.log("locationName: ", locationName);
-    try {
-      const apiCall = await getAreaDetails({
-        locationName: locationName,
-      });
-      if (apiCall.status) {
-        setAllArea(apiCall.data);
-        if (apiCall?.data?.[0]?.name) {
-          callAPI(locationName, apiCall?.data?.[0]?.name);
-
-          setSelectedCity(apiCall?.data?.[0]);
-          localStorage.setItem("areaId", apiCall?.data?.[0]?.areaid);
-        } else {
-          callAPI(locationName);
-        }
+        callAPI(arr?.[0]?.name);
         setloading(false);
       } else {
         toast.error(apiCall?.message);
@@ -305,10 +281,10 @@ export default function CourtBookingCalendar() {
     }
   }, []);
 
-  const callAPI = useCallback(async (locationName, areaName) => {
-    console.log("locationName, areaName: ", locationName, areaName);
+  const callAPI = useCallback(async (locationName) => {
+    console.log("locationName, areaName: ", locationName);
     try {
-      let query = { location: locationName || "", areaName: areaName || "" };
+      let query = { location: locationName || "" };
       if (user?.role !== "admin") {
         query.userid = user?.userid;
       }
@@ -420,52 +396,8 @@ export default function CourtBookingCalendar() {
     setSelectedLocation(value);
     localStorage.setItem("locationId", locationId);
 
-    // try {
-    //   let query = { location: value };
-    //   if (user?.role !== "admin") {
-    //     query.userid = user?.userid;
-    //   }
-
-    //   const apiCall = await getAllVenue(query);
-    //   if (apiCall.status) {
-    //     // setAllVenue(apiCall.data);
-
-    //     setAllVenue(apiCall?.data);
-
-    //     if (apiCall?.data?.length > 0) {
-    //       console.log(
-    //         "apiCall?.data?.[0]?.sports?.[0]?.courts: ",
-    //         apiCall?.data?.[0]?.sports?.[0]?.courts
-    //       );
-    //       updateSelectedVenue(apiCall?.data?.[0]);
-    //       updateSelectedCourt(
-    //         apiCall?.data?.[0]?.sports?.[0]?.courts?.[0]?.venuecourtid
-    //       );
-    //       updateSelectedSport(apiCall?.data?.[0]?.sports?.[0]);
-    //     }
-
-    //     setloading(false);
-    //   } else {
-    //     setloading(false);
-
-    //     toast.error(apiCall?.message);
-    //   }
-    // } catch (error) {
-    //   setloading(false);
-
-    //   console.log(error);
-    //   toast.error(error);
-    // }
-
-    callAreaAPI(value?.name);
-  };
-  const updateCity = async (value, areaid) => {
-    setloading(true);
-    setSelectedCity(value);
-    localStorage.setItem("areaId", areaid);
-
     try {
-      let query = { location: selectedLocation?.name, areaName: value?.name };
+      let query = { location: value };
       if (user?.role !== "admin") {
         query.userid = user?.userid;
       }
@@ -540,7 +472,7 @@ export default function CourtBookingCalendar() {
 
         {user?.role === "admin" && (
           <FormControl size="small" className="w-[200px] bg-white">
-            <InputLabel id="location-select-label">Location</InputLabel>
+            <InputLabel id="location-select-label">City</InputLabel>
             <Select
               labelId="location-select-label"
               id="location-select"
@@ -560,26 +492,7 @@ export default function CourtBookingCalendar() {
             </Select>
           </FormControl>
         )}
-        {user?.role === "admin" && (
-          <FormControl size="small" className="w-[200px] bg-white">
-            <InputLabel id="location-select-label">City</InputLabel>
-            <Select
-              labelId="location-select-label"
-              id="location-select"
-              value={selectedCity}
-              label="Location"
-              onChange={(e) => {
-                updateCity(e.target.value, e.target.value?.areaid);
-              }}
-            >
-              {allArea?.map((item, i) => (
-                <MenuItem value={item} key={i}>
-                  {item?.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
+
         <FormControl size="small" className="w-[200px]">
           <InputLabel id="venue-select-label">Venue</InputLabel>
           <Select
@@ -638,10 +551,10 @@ export default function CourtBookingCalendar() {
 
     apiData = allTodayCount?.map((er) => ({
       Date: moment(er?.date, "YYYY-MM-DD").format("DD-MM-YYYY"),
-      'Start Time': er?.startTime,
-      'End Time': er?.endTime,
-      "Price": er.price,
-      "Username": er.userName,
+      "Start Time": er?.startTime,
+      "End Time": er?.endTime,
+      Price: er.price,
+      Username: er.userName,
       "Mobile No": er.phoneNumber,
     }));
 
@@ -655,9 +568,47 @@ export default function CourtBookingCalendar() {
     const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     const data = new Blob([excelBuffer], { type: fileType });
     FileSaver.saveAs(data, fileName + fileExtension);
-  
+  };
 
-  }
+  const handleCallBackVenueApi = async () => {
+    // callAPI();
+    // let formData = {
+    //   venueId: selectedVenue?.venueId,
+    //   venueCourtId: selectedCourt,
+    //   sportId: selectedSport?.sportid,
+    //   fromDate: moment(startDate).format("YYYY-MM-DD"),
+    //   toDate: moment(endDate).format("YYYY-MM-DD"),
+    // };
+    // setloading(true);
+    // allBookingCallAPI(formData);
+
+    try {
+      let query = {
+        location: selectedLocation?.name,
+      };
+      if (user?.role !== "admin") {
+        query.userid = user?.userid;
+      }
+
+      const apiCall = await getAllVenue(query);
+      if (apiCall.status) {
+        // setAllVenue(apiCall.data);
+
+        setAllVenue(apiCall?.data);
+
+        setloading(false);
+      } else {
+        setloading(false);
+
+        toast.error(apiCall?.message);
+      }
+    } catch (error) {
+      setloading(false);
+
+      console.log(error);
+      toast.error(error);
+    }
+  };
 
   if (loading) {
     return <TableLoader />;
@@ -687,7 +638,7 @@ export default function CourtBookingCalendar() {
 
             {user?.role === "admin" && (
               <FormControl size="small" className="w-[200px] bg-white">
-                <InputLabel id="location-select-label">Location</InputLabel>
+                <InputLabel id="location-select-label">City</InputLabel>
                 <Select
                   labelId="location-select-label"
                   id="location-select"
@@ -699,26 +650,6 @@ export default function CourtBookingCalendar() {
                   }}
                 >
                   {locationList?.map((item, i) => (
-                    <MenuItem value={item} key={i}>
-                      {item?.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
-            {user?.role === "admin" && (
-              <FormControl size="small" className="w-[200px] bg-white">
-                <InputLabel id="location-select-label">City</InputLabel>
-                <Select
-                  labelId="location-select-label"
-                  id="location-select"
-                  value={selectedCity}
-                  label="Location"
-                  onChange={(e) => {
-                    updateCity(e.target.value, e.target.value?.areaid);
-                  }}
-                >
-                  {allArea?.map((item, i) => (
                     <MenuItem value={item} key={i}>
                       {item?.name}
                     </MenuItem>
@@ -795,11 +726,24 @@ export default function CourtBookingCalendar() {
 
       <div className="px-4">
         <div className="flex justify-end">
+          {user?.role !== "venueStaff" && (
+            <Button
+              variant="outline"
+              style={{ padding: "10px 23px" }}
+              onClick={() => {
+                setVenueModal(true);
+              }}
+              className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Manage Venue
+            </Button>
+          )}
+
           <Button
             variant="outline"
-          
             style={{ padding: "10px 23px" }}
-            className="bg-black text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+            className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
           >
             Today Revenue -{" "}
             {allTodayCount?.reduce((total, num) => total + num.price, 0)} |{" "}
@@ -808,14 +752,13 @@ export default function CourtBookingCalendar() {
           <Button
             variant="outline"
             onClick={() => {
-             downloadExcel()
+              downloadExcel();
             }}
             style={{ padding: "10px 23px" }}
             className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
           >
             Export Excel
           </Button>
-        
         </div>
       </div>
       {allVenue?.length === 0 ? (
@@ -1138,7 +1081,7 @@ export default function CourtBookingCalendar() {
                 </div>
                 <div className="flex items-center m-0 mx-4">
                   <div className="w-4 h-4 bg-blue-600 rounded mr-2"></div>
-                  <span>Book From Player App</span>
+                  <span>Book From Pllayer App</span>
                 </div>
               </div>
             )}
@@ -1185,6 +1128,15 @@ export default function CourtBookingCalendar() {
             />
           )} */}
         </>
+      )}
+
+      {venueModal && (
+        <EditVenueModal
+          open={venueModal}
+          setOpen={setVenueModal}
+          handleCallBackApi={handleCallBackVenueApi}
+          selectedVenue={selectedVenue}
+        />
       )}
     </div>
   );

@@ -94,7 +94,7 @@ const ManageUser = () => {
     },
     {
       width: 200,
-      title: "Total Player Revenue",
+      title: "Total Pllayer Revenue",
       dataIndex: "total_ground_amount_revenue",
       key: "total_ground_amount_revenue",
     },
@@ -182,7 +182,7 @@ const ManageUser = () => {
       key: "groundAmount",
     },
     {
-      title: "Player Amount",
+      title: "Pllayer Amount",
       dataIndex: "playerAmount",
       key: "playerAmount",
     },
