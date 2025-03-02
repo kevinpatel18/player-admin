@@ -37,18 +37,7 @@ const ManageUser = () => {
       setloading(true);
       const apiCall = await getAllUserReport({ limit, offset, userid });
       if (apiCall.status) {
-        setUserDetails(
-          apiCall.data?.map((user) => {
-            let obj = {
-              ...user,
-              bookingDetails: user?.booking_details || [],
-            };
-
-            delete obj.booking_details;
-
-            return obj;
-          })
-        );
+        setUserDetails(apiCall.data);
         setTotalPages(apiCall?.pagination?.total_items);
         setloading(false);
       } else {

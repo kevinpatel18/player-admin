@@ -80,7 +80,7 @@ const CustomTableContainer = ({
     console.log("record: ", record);
     if (expanded) {
       // Expand the clicked row
-      setExpandedRowKeys([record.userId]); // Keep only one expanded row at a time
+      setExpandedRowKeys([record.userid]); // Keep only one expanded row at a time
     } else {
       // Collapse the row
       setExpandedRowKeys([]);
@@ -123,7 +123,7 @@ const CustomTableContainer = ({
           }}
           footer={footer ? footer : false}
           bordered
-          rowKey="userId"
+          rowKey="userid"
           pagination={false}
         />
       ) : rowSelection ? (

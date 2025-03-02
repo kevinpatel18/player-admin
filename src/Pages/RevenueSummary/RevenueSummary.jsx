@@ -320,9 +320,12 @@ const RevenueSummary = () => {
   const callVenueAPI = useCallback(async (locationName, obj) => {
     console.log("locationName: ", locationName);
     try {
-      const apiCall = await getAllVenue({
-        location: locationName,
-      });
+      let query = { location: locationName || "" };
+      if (user?.role !== "admin") {
+        query.userid = user?.userid;
+      }
+
+      const apiCall = await getAllVenue(query);
       if (apiCall.status) {
         setAllVenue(apiCall.data);
         if (apiCall?.data?.[0]?.venueId) {
@@ -345,6 +348,10 @@ const RevenueSummary = () => {
   useEffect(() => {
     if (user?.role === "admin") {
       getAllLocation();
+    } else {
+      let obj = { ...query };
+
+      callVenueAPI("", obj);
     }
   }, []);
 
@@ -983,33 +990,33 @@ const RevenueSummary = () => {
                 </Select>
               </FormControl>
             )}
-            {user?.role === "admin" && (
-              <FormControl size="small" className="w-[200px]">
-                <InputLabel id="venue-select-label">Venue</InputLabel>
-                <Select
-                  labelId="venue-select-label"
-                  id="venue-select"
-                  value={query?.selectedVenue}
-                  label="Venue"
-                  onChange={(e) => {
-                    setloading(true);
-                    setQuery({
-                      ...query,
-                      selectedVenue: e.target.value,
-                      selectedSport: e.target.value?.sports?.[0],
-                      selectedCourts: "All",
-                    });
-                  }}
-                >
-                  <MenuItem value={""}>All</MenuItem>
-                  {allVenue?.map((item, i) => (
-                    <MenuItem value={item} key={i}>
-                      {item?.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
+
+            <FormControl size="small" className="w-[200px]">
+              <InputLabel id="venue-select-label">Venue</InputLabel>
+              <Select
+                labelId="venue-select-label"
+                id="venue-select"
+                value={query?.selectedVenue}
+                label="Venue"
+                onChange={(e) => {
+                  setloading(true);
+                  setQuery({
+                    ...query,
+                    selectedVenue: e.target.value,
+                    selectedSport: e.target.value?.sports?.[0],
+                    selectedCourts: "All",
+                  });
+                }}
+              >
+                <MenuItem value={""}>All</MenuItem>
+                {allVenue?.map((item, i) => (
+                  <MenuItem value={item} key={i}>
+                    {item?.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <FormControl size="small" className="w-[200px]">
               <InputLabel id="sport-select-label">Sport</InputLabel>
               <Select
