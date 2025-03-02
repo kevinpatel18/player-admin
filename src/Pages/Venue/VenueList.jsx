@@ -34,7 +34,10 @@ const VenueList = () => {
   const callAPI = useCallback(async (limit, offset) => {
     try {
       setloading(true);
-      const apiCall = await getAllVenue({ limit, offset });
+      const apiCall = await getAllVenue({
+        limit,
+        offset,
+      });
       if (apiCall.status) {
         setUserDetails(
           apiCall.data?.map((user) => {
@@ -165,7 +168,6 @@ const VenueList = () => {
       const apiCall = await getAllVenue({
         limit,
         offset,
-
         name: query?.name,
         phoneNumber: query?.phoneNumber,
       });
@@ -262,7 +264,7 @@ const VenueList = () => {
   );
 
   const handleCallBackVenueApi = () => {
-    callAPI(limit, offset);
+    callAPI(limit, offset, query);
   };
 
   if (loading) {

@@ -25,7 +25,7 @@ const CustomTableContainer = ({
 
   const handleOnChange = (page) => {
     console.log("page: ", page);
-    setOffset(page);
+    setOffset(page * limit - limit);
   };
 
   const handleChangeSize = (current, size) => {
@@ -165,7 +165,7 @@ const CustomTableContainer = ({
             defaultCurrent={1}
             total={total}
             defaultPageSize={limit}
-            current={offset}
+            current={offset / limit + 1}
             onChange={handleOnChange}
             showSizeChanger={true}
             onShowSizeChange={handleChangeSize}

@@ -38,8 +38,8 @@ const EditModal = ({
     isavailable: selectedRow?.row?.isavailable,
   });
   const [userinputData, setUserInputData] = useState({
-    username: "",
-    phoneNumber: "",
+    username: localStorage.getItem("username"),
+    phoneNumber: localStorage.getItem("phoneNumber"),
     amount: "",
   });
   const [phoneNumberError, setPhoneNumberError] = useState(false);
@@ -85,6 +85,9 @@ const EditModal = ({
     } else if (userinputData?.phoneNumber?.length !== 10) {
       toast.error("Please Enter a Valid Phone Number");
     } else {
+      localStorage.setItem("username", userinputData?.username);
+      localStorage.setItem("phoneNumber", userinputData?.phoneNumber);
+
       let formData = {
         venueid: location?.venueId,
         venuesportid: selectedSport?.sportid,
@@ -538,6 +541,27 @@ const EditModal = ({
                   }
                 }}
               />
+              <div className="flex justify-end">
+                <p
+                  className="mb-0 pb-0"
+                  style={{
+                    fontSize: 14,
+                    marginTop: 4,
+                    cursor: "pointer",
+                    fontWeight: 700,
+                  }}
+                  onClick={() => {
+                    setUserInputData({
+                      ...userinputData,
+                      username: "",
+                      phoneNumber: "",
+                    });
+                  }}
+                >
+                  {" "}
+                  Clear All
+                </p>
+              </div>
 
               <div className="flex gap-4 justify-center items-center mt-3">
                 <button
@@ -610,6 +634,7 @@ const EditModal = ({
                   }
                 }}
               />
+             
               <TextField
                 type="number"
                 fullWidth
@@ -631,7 +656,27 @@ const EditModal = ({
                   }
                 }}
               />
-
+  <div className="flex justify-end">
+                <p
+                  className="mb-0 pb-0"
+                  style={{
+                    fontSize: 14,
+                    marginTop: 4,
+                    cursor: "pointer",
+                    fontWeight: 700,
+                  }}
+                  onClick={() => {
+                    setUserInputData({
+                      ...userinputData,
+                      username: "",
+                      phoneNumber: "",
+                    });
+                  }}
+                >
+                  {" "}
+                  Clear All
+                </p>
+              </div>
               <div className="flex gap-4 justify-center items-center mt-4">
                 <button
                   onClick={() => {

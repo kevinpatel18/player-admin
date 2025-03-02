@@ -450,9 +450,27 @@ const RevenueSummary = () => {
 
       if (query?.selectedRange !== "custom") {
         if (selectedTab === "booking") {
-          callAPI(limit, offset, fromDate, toDate);
+          callAPI(
+            limit,
+            offset,
+            fromDate,
+            toDate,
+            "",
+            query?.selectedSport?.sportid,
+            query?.selectedVenue?.venueId,
+            query?.selectedCourts !== "All" && query?.selectedCourts
+          );
         } else if (selectedTab === "cancel") {
-          callCancelBookingAPI(limit, offset, fromDate, toDate);
+          callCancelBookingAPI(
+            limit,
+            offset,
+            fromDate,
+            toDate,
+            "",
+            query?.selectedSport?.sportid,
+            query?.selectedVenue?.venueId,
+            query?.selectedCourts !== "All" && query?.selectedCourts
+          );
         }
       }
     }
@@ -471,9 +489,27 @@ const RevenueSummary = () => {
 
         if (query?.selectedRange === "custom") {
           if (selectedTab === "booking") {
-            callAPI(limit, offset, fromDate, toDate);
+            callAPI(
+              limit,
+              offset,
+              fromDate,
+              toDate,
+              "",
+              query?.selectedSport?.sportid,
+              query?.selectedVenue?.venueId,
+              query?.selectedCourts !== "All" && query?.selectedCourts
+            );
           } else if (selectedTab === "cancel") {
-            callCancelBookingAPI(limit, offset, fromDate, toDate);
+            callCancelBookingAPI(
+              limit,
+              offset,
+              fromDate,
+              toDate,
+              "",
+              query?.selectedSport?.sportid,
+              query?.selectedVenue?.venueId,
+              query?.selectedCourts !== "All" && query?.selectedCourts
+            );
           }
         }
       }

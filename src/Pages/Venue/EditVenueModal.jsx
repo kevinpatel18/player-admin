@@ -498,43 +498,7 @@ const EditVenueModal = ({
                 }}
               />
             </div>
-            {user?.role === "admin" && (
-              <div className="col-md-6">
-                <FormControl fullWidth>
-                  <InputLabel id="demo-simple-select-label">
-                    Preamount
-                  </InputLabel>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={inputData.preamount}
-                    label="Sport"
-                    fullWidth
-                    sx={{ width: 200 }}
-                    onChange={(e) => {
-                      setInputData({ ...inputData, preamount: e.target.value });
-                      if (e.target.value?.length > 1) {
-                        setInputDataError({
-                          ...inputDataError,
-                          preamount: false,
-                        });
-                      } else {
-                        setInputDataError({
-                          ...inputDataError,
-                          preamount: true,
-                        });
-                      }
-                    }}
-                  >
-                    <MenuItem value={0}>0</MenuItem>
-                    <MenuItem value={25}>25</MenuItem>
-                    <MenuItem value={50}>50</MenuItem>
-                    <MenuItem value={75}>75</MenuItem>
-                    <MenuItem value={100}>100</MenuItem>
-                  </Select>
-                </FormControl>
-              </div>
-            )}
+
             <div className="col-md-6">
               <TextField
                 label="Max Days"

@@ -70,10 +70,16 @@ export const getAllVenue = async (formData) => {
           formData?.location || ""
         }&page=${formData?.offset}&page_size=${formData?.limit}&areaName=${
           formData?.areaName || ""
+        }&phoneNumber=${formData?.phoneNumber || ""}&name=${
+          formData?.name || ""
         }`
       : `${baseUrl}venues?location=${formData?.location || ""}&page=${
           formData?.offset
-        }&page_size=${formData?.limit}&areaName=${formData?.areaName || ""}`;
+        }&page_size=${formData?.limit}&areaName=${
+          formData?.areaName || ""
+        }&phoneNumber=${formData?.phoneNumber || ""}&name=${
+          formData?.name || ""
+        }`;
 
     const data = await fetch(api, {
       method: "GET",

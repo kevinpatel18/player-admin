@@ -726,7 +726,7 @@ export default function CourtBookingCalendar() {
 
       <div className="px-4">
         <div className="flex justify-end">
-          {user?.role !== "venueStaff" && (
+          {user?.role !== "venueStaff" && user?.role !== "admin" && (
             <Button
               variant="outline"
               style={{ padding: "10px 23px" }}
