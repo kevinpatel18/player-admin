@@ -254,6 +254,7 @@ const EditModal = ({
 
         let formData = {
           bookingVenueId: JSON.stringify(arr),
+          isAdmin: true,
           message: "Slot Cancel By Venue Admin",
         };
 
@@ -634,7 +635,7 @@ const EditModal = ({
                   }
                 }}
               />
-             
+
               <TextField
                 type="number"
                 fullWidth
@@ -656,7 +657,7 @@ const EditModal = ({
                   }
                 }}
               />
-  <div className="flex justify-end">
+              <div className="flex justify-end">
                 <p
                   className="mb-0 pb-0"
                   style={{
