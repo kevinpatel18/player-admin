@@ -270,7 +270,12 @@ const RevenueSummary = () => {
               +parseFloat(
                 apiCall?.total_player_revenue -
                   +apiCall?.total_player_revenue * 0.01 || 0
-              ).toFixed(2) + +parseInt(apiCall?.total_ground_revenue || 0)
+              ).toFixed(2) +
+                +parseInt(apiCall?.total_ground_revenue || 0) +
+                +apiCall?.total_pending_refund_revenue
+            ).toFixed(2),
+            total_pending_refund_revenue: parseFloat(
+              apiCall?.total_pending_refund_revenue
             ).toFixed(2),
           });
           setTotalPages(apiCall?.pagination?.total_items);
@@ -596,7 +601,9 @@ const RevenueSummary = () => {
   const cancelBookingColumns = [
     {
       title: "Date",
-      dataIndex: "date",
+      render: (cell) => {
+        return <span>{moment(cell?.date).format("DD-MM-YYYY")}</span>;
+      },
       key: "date",
     },
 
@@ -670,36 +677,50 @@ const RevenueSummary = () => {
       key: "playerAmount",
     },
     {
-      title: "Status",
+      title: "Refund Date",
       render: (cell) => {
-        console.log(cell);
-        return (
-          <span
-            style={{
-              color:
-                cell?.status === "Pending"
-                  ? "rgb(247 184 75)"
-                  : cell?.status === "Completed"
-                  ? "rgb(10 179 156)"
-                  : "",
-              backgroundColor:
-                cell?.status === "Pending"
-                  ? "#fef4e4"
-                  : cell?.status === "Completed"
-                  ? "#daf4f0"
-                  : "",
-              padding: "0.65em 0.35em",
-              fontSize: 12,
-              borderRadius: 4,
-              fontWeight: 600,
-            }}
-          >
-            {cell?.status}
-          </span>
-        );
+        return <span>{moment(cell?.createdAt).format("DD-MM-YYYY")}</span>;
       },
-      key: "status",
+      key: "date",
     },
+    {
+      title: "Refund Pllayer Amount",
+      render: (cell) => {
+        return <span>{parseFloat(cell?.refundAmount || 0).toFixed(2)}</span>;
+      },
+      key: "refundAmount",
+    },
+    // {
+    //   title: "Status",
+    //   render: (cell) => {
+    //     console.log(cell);
+    //     return (
+    //       <span
+    //         style={{
+    //           color:
+    //             cell?.status === "Pending"
+    //               ? "rgb(247 184 75)"
+    //               : cell?.status === "Completed"
+    //               ? "rgb(10 179 156)"
+    //               : "",
+    //           backgroundColor:
+    //             cell?.status === "Pending"
+    //               ? "#fef4e4"
+    //               : cell?.status === "Completed"
+    //               ? "#daf4f0"
+    //               : "",
+    //           padding: "0.65em 0.35em",
+    //           fontSize: 12,
+    //           borderRadius: 4,
+    //           fontWeight: 600,
+    //         }}
+    //       >
+    //         {cell?.status}
+    //       </span>
+    //     );
+    //   },
+    //   key: "status",
+    // },
   ];
 
   const DrawerList = (
@@ -990,6 +1011,28 @@ const RevenueSummary = () => {
             </div>
           </CardBody>
         </Card>
+        {selectedTab === "cancel" && (
+          <Card className="w-full md:w-[300px] bg-white rounded-3xl shadow-sm">
+            <CardBody className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-4 h-4 flex items-center justify-center rounded-full bg-orange-100">
+                  <RefreshCcw className="w-5 h-5 text-blue-500" />
+                </div>
+                <h2 className="text-xl text-blue-500 font-medium">
+                  Refund Collection
+                </h2>
+              </div>
+              <div className="flex items-baseline">
+                <span className="text-2xl font-bold">₹</span>
+                <span className="text-2xl font-bold">
+                  {formatIndianNumber(
+                    revenueDetails?.total_pending_refund_revenue || 0
+                  )}
+                </span>
+              </div>
+            </CardBody>
+          </Card>
+        )}
       </div>
 
       {!isTablet && (
