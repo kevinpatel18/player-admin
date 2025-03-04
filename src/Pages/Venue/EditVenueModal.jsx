@@ -24,6 +24,7 @@ import Checkbox from "@mui/material/Checkbox";
 import { getAmenitiesDetails, updateVenueDetails } from "../../Libs/api";
 import { setISODay } from "date-fns";
 import { MyContext } from "../../hooks/MyContextProvider";
+import useBreakPoints from "../../hooks/useBreakPoints";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -104,6 +105,7 @@ const EditVenueModal = ({
 }) => {
   console.log("selectedVenue: ", selectedVenue);
   const { user } = useContext(MyContext);
+  const { isTablet, isMobile} = useBreakPoints()
   const [loading, setloading] = useState(false);
   const [allAmenities, setAllAmenities] = useState([]);
 
@@ -240,10 +242,10 @@ const EditVenueModal = ({
         <Box
           sx={{
             position: "absolute",
-            top: "50%",
+            top: "45%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 900,
+            width: isMobile ? 350 : isTablet ? 600 : 900,
 
             bgcolor: "background.paper",
             border: "none",
@@ -251,7 +253,8 @@ const EditVenueModal = ({
             boxShadow: 24,
             textAlign: "center",
             p: 4,
-            overflow: "auto",
+            height: isMobile ? 500 : isTablet ? 500 : 600,
+              overflow: "auto",
           }}
         >
           <div className="flex justify-between items-center">
@@ -275,8 +278,7 @@ const EditVenueModal = ({
               gap: "30px 20px",
               display: "flex",
               flexDirection: "column",
-              height: 450,
-              overflow: "auto",
+              
             }}
           >
             <div className="col-md-6">

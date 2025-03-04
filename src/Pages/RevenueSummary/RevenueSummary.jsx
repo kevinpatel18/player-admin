@@ -1171,6 +1171,7 @@ const RevenueSummary = () => {
                     size="small"
                     sx={{ padding: 0 }}
                     format="DD/MM/YYYY"
+                    className="custom-date-picker"
                     onChange={handleDateRangeChange}
                   />
                 </DemoContainer>

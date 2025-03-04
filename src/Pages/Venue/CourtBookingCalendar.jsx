@@ -537,6 +537,30 @@ export default function CourtBookingCalendar() {
             ))}
           </Select>
         </FormControl>
+
+        {user?.role !== "venueStaff" && user?.role !== "admin" && (
+          <Button
+            variant="outline"
+            style={{ padding: "10px 23px", width: "85%" }}
+            onClick={() => {
+              setVenueModal(true);
+            }}
+            className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center  rounded "
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Manage Venue
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          onClick={() => {
+            downloadExcel();
+          }}
+          style={{ padding: "10px 23px", width: "85%" }}
+          className="bg-black text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+        >
+          Export Excel
+        </Button>
       </div>
     </Box>
   );
@@ -724,22 +748,23 @@ export default function CourtBookingCalendar() {
         )}
       </div>
 
-      <div className="px-4">
-        <div className="flex justify-end">
-          {user?.role !== "venueStaff" && user?.role !== "admin" && (
-            <Button
-              variant="outline"
-              style={{ padding: "10px 23px" }}
-              onClick={() => {
-                setVenueModal(true);
-              }}
-              className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              Manage Venue
-            </Button>
-          )}
-
+      {!isTablet && (
+        <div className="px-4">
+          <div className="flex justify-end">
+            {user?.role !== "venueStaff" && user?.role !== "admin" && (
+              <Button
+                variant="outline"
+                style={{ padding: "10px 23px" }}
+                onClick={() => {
+                  setVenueModal(true);
+                }}
+                className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Manage Venue
+              </Button>
+            )}
+            {/* 
           <Button
             variant="outline"
             style={{ padding: "10px 23px" }}
@@ -748,19 +773,20 @@ export default function CourtBookingCalendar() {
             Today Revenue -{" "}
             {allTodayCount?.reduce((total, num) => total + num.price, 0)} |{" "}
             Slots -{allTodayCount?.length}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              downloadExcel();
-            }}
-            style={{ padding: "10px 23px" }}
-            className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
-          >
-            Export Excel
-          </Button>
+          </Button> */}
+            <Button
+              variant="outline"
+              onClick={() => {
+                downloadExcel();
+              }}
+              style={{ padding: "10px 23px" }}
+              className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+            >
+              Export Excel
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
       {allVenue?.length === 0 ? (
         <>
           <div className="flex flex-col w-full">
@@ -848,7 +874,7 @@ export default function CourtBookingCalendar() {
                         <th
                           key={index}
                           style={{
-                            borderTop: isCurrentDate && "2px solid #0044CA",
+                            borderTop: isCurrentDate && "4px solid #0044CA",
                             backgroundColor: isCurrentDate ? "white" : "",
                             minWidth: 100,
                           }}
@@ -955,7 +981,7 @@ export default function CourtBookingCalendar() {
                           return (
                             <td
                               style={{
-                                minWidth: 200,
+                                minWidth: 150,
 
                                 cursor: !isBooked?.isavailable
                                   ? "not-allowed"
@@ -1079,10 +1105,7 @@ export default function CourtBookingCalendar() {
                   <div className="w-4 h-4 bg-green-600 rounded mr-2"></div>
                   <span>Book With Full Payment</span>
                 </div>
-                <div className="flex items-center m-0 mx-4">
-                  <div className="w-4 h-4 bg-blue-600 rounded mr-2"></div>
-                  <span>Book From Pllayer App</span>
-                </div>
+              
               </div>
             )}
           </div>

@@ -428,8 +428,38 @@ label {
 }
 
 .custom-table> thead > tr > th {
-  border : 0.5px solid black;
+  border : 0.5px solid rgba(0, 0, 0, 0.26);
 }
 .custom-table> tbody > tr > td {
-  border : 0.5px solid black;
+  border : 0.5px solid rgba(0, 0, 0, 0.26);
+}
+
+
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #ebebeb;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  background: #6d6d6d; 
+}
+
+
+.custom-date-picker input {
+  height: 10px !important;
+
+}
+.custom-date-picker > div {
+  padding: 10px !important;
+
 }
