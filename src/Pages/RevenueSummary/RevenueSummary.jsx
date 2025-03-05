@@ -190,12 +190,12 @@ const RevenueSummary = () => {
             ).toFixed(2),
             playerRevneue: parseFloat(
               apiCall?.total_player_revenue -
-                +apiCall?.total_player_revenue * 0.01 || 0
+                +apiCall?.total_player_revenue * 0.018 || 0
             ).toFixed(2),
             totalRevenue: parseFloat(
               +parseFloat(
                 apiCall?.total_player_revenue -
-                  +apiCall?.total_player_revenue * 0.01 || 0
+                  +apiCall?.total_player_revenue * 0.018 || 0
               ).toFixed(2) +
                 +parseInt(apiCall?.total_ground_revenue || 0) +
                 +parseInt(apiCall?.total_pending_refund_revenue || 0)
@@ -261,12 +261,12 @@ const RevenueSummary = () => {
             ).toFixed(2),
             playerRevneue: parseFloat(
               apiCall?.total_player_revenue -
-                +apiCall?.total_player_revenue * 0.01 || 0
+                +apiCall?.total_player_revenue * 0.018 || 0
             ).toFixed(2),
             totalRevenue: parseFloat(
               +parseFloat(
                 apiCall?.total_player_revenue -
-                  +apiCall?.total_player_revenue * 0.01 || 0
+                  +apiCall?.total_player_revenue * 0.018 || 0
               ).toFixed(2) +
                 +parseInt(apiCall?.total_ground_revenue || 0) +
                 +apiCall?.total_pending_refund_revenue
@@ -587,7 +587,7 @@ const RevenueSummary = () => {
         return (
           <span>
             {parseFloat(
-              +cell?.playerAmount - +cell?.playerAmount * 0.01 || 0
+              +cell?.playerAmount - +cell?.playerAmount * 0.018 || 0
             ).toFixed(2)}
           </span>
         );
@@ -666,7 +666,7 @@ const RevenueSummary = () => {
         return (
           <span>
             {parseFloat(
-              +cell?.playerAmount - +cell?.playerAmount * 0.01 || 0
+              +cell?.playerAmount - +cell?.playerAmount * 0.018 || 0
             ).toFixed(2)}
           </span>
         );
