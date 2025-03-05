@@ -182,9 +182,7 @@ const RevenueSummary = () => {
         if (apiCall.status) {
           setRevenueDetails({
             rows: apiCall.data?.filter((er) => !er?.isCancelBooking),
-            cancelBookingRows: apiCall.data?.filter(
-              (er) => er?.isCancelBooking
-            ),
+            cancelBookingRows: apiCall?.cancelbookingsData,
             groundRevenue: parseFloat(
               apiCall?.total_ground_revenue || 0
             ).toFixed(2),
