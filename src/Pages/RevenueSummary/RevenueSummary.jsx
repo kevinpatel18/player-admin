@@ -52,6 +52,7 @@ const RevenueSummary = () => {
   const [selectedTab, setSelectedTab] = useState("booking");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [revenueDetails, setRevenueDetails] = useState({});
+  console.log("revenueDetails: ", revenueDetails);
   const [selectedRowIds, setSelectedRowIds] = useState([]);
   const [loading, setloading] = useState(true);
   const [limit, setLimit] = useState(10); // default slimit
@@ -179,21 +180,11 @@ const RevenueSummary = () => {
         });
 
         if (apiCall.status) {
-          console.log(apiCall.data, "apiCall.data");
-          console.log(
-            "apiCall?.total_player_revenue: ",
-            apiCall?.total_player_revenue
-          );
-          console.log(
-            +parseFloat(
-              apiCall?.total_player_revenue -
-                +apiCall?.total_player_revenue * 0.01 || 0
-            ).toFixed(2) + +parseInt(apiCall?.total_ground_revenue || 0),
-            "apiCall?.total_ground_revenue: ",
-            apiCall?.total_ground_revenue
-          );
           setRevenueDetails({
-            rows: apiCall.data,
+            rows: apiCall.data?.filter((er) => !er?.isCancelBooking),
+            cancelBookingRows: apiCall.data?.filter(
+              (er) => er?.isCancelBooking
+            ),
             groundRevenue: parseFloat(
               apiCall?.total_ground_revenue || 0
             ).toFixed(2),
@@ -205,7 +196,13 @@ const RevenueSummary = () => {
               +parseFloat(
                 apiCall?.total_player_revenue -
                   +apiCall?.total_player_revenue * 0.01 || 0
-              ).toFixed(2) + +parseInt(apiCall?.total_ground_revenue || 0)
+              ).toFixed(2) +
+                +parseInt(apiCall?.total_ground_revenue || 0) +
+                +apiCall?.total_pending_refund_revenue
+            ).toFixed(2),
+
+            total_pending_refund_revenue: parseFloat(
+              apiCall?.total_pending_refund_revenue
             ).toFixed(2),
           });
           setTotalPages(apiCall?.pagination?.total_items);
@@ -373,33 +370,33 @@ const RevenueSummary = () => {
       const toDate = format(endDate, "yyyy-MM-dd");
 
       if (query?.selectedRange !== "custom") {
-        if (selectedTab === "booking") {
-          callAPI(
-            limit,
-            offset,
-            fromDate,
-            toDate,
-            query?.selectedLocation?.locationid,
-            query?.selectedSport?.sportid,
-            query?.selectedVenue?.venueId,
-            query?.selectedCourts !== "All" && query?.selectedCourts
-          );
-        } else if (selectedTab === "cancel") {
-          callCancelBookingAPI(
-            limit,
-            offset,
-            fromDate,
-            toDate,
-            query?.selectedLocation?.locationid,
-            query?.selectedSport?.sportid,
-            query?.selectedVenue?.venueId,
-            query?.selectedCourts !== "All" && query?.selectedCourts
-          );
-        }
+        // if (selectedTab === "booking") {
+        callAPI(
+          limit,
+          offset,
+          fromDate,
+          toDate,
+          query?.selectedLocation?.locationid,
+          query?.selectedSport?.sportid,
+          query?.selectedVenue?.venueId,
+          query?.selectedCourts !== "All" && query?.selectedCourts
+        );
+        // } else if (selectedTab === "cancel") {
+        //   callCancelBookingAPI(
+        //     limit,
+        //     offset,
+        //     fromDate,
+        //     toDate,
+        //     query?.selectedLocation?.locationid,
+        //     query?.selectedSport?.sportid,
+        //     query?.selectedVenue?.venueId,
+        //     query?.selectedCourts !== "All" && query?.selectedCourts
+        //   );
+        // }
       }
     }
     // eslint-disable-next-line
-  }, [limit, offset, currentDate, query, selectedTab]);
+  }, [limit, offset, currentDate, query]);
 
   useEffect(() => {
     if (
@@ -416,33 +413,33 @@ const RevenueSummary = () => {
         console.log("toDate: ", toDate);
 
         if (query?.selectedRange === "custom") {
-          if (selectedTab === "booking") {
-            callAPI(
-              limit,
-              offset,
-              fromDate,
-              toDate,
-              query?.selectedLocation?.locationid,
-              query?.selectedSport?.sportid,
-              query?.selectedVenue?.venueId,
-              query?.selectedCourts !== "All" && query?.selectedCourts
-            );
-          } else if (selectedTab === "cancel") {
-            callCancelBookingAPI(
-              limit,
-              offset,
-              fromDate,
-              toDate,
-              query?.selectedLocation?.locationid,
-              query?.selectedSport?.sportid,
-              query?.selectedVenue?.venueId,
-              query?.selectedCourts !== "All" && query?.selectedCourts
-            );
-          }
+          // if (selectedTab === "booking") {
+          callAPI(
+            limit,
+            offset,
+            fromDate,
+            toDate,
+            query?.selectedLocation?.locationid,
+            query?.selectedSport?.sportid,
+            query?.selectedVenue?.venueId,
+            query?.selectedCourts !== "All" && query?.selectedCourts
+          );
+          // } else if (selectedTab === "cancel") {
+          //   callCancelBookingAPI(
+          //     limit,
+          //     offset,
+          //     fromDate,
+          //     toDate,
+          //     query?.selectedLocation?.locationid,
+          //     query?.selectedSport?.sportid,
+          //     query?.selectedVenue?.venueId,
+          //     query?.selectedCourts !== "All" && query?.selectedCourts
+          //   );
+          // }
         }
       }
     }
-  }, [limit, offset, query, selectedTab]);
+  }, [limit, offset, query]);
 
   useEffect(() => {
     if (user?.role !== "admin") {
@@ -454,33 +451,33 @@ const RevenueSummary = () => {
       const toDate = format(endDate, "yyyy-MM-dd");
 
       if (query?.selectedRange !== "custom") {
-        if (selectedTab === "booking") {
-          callAPI(
-            limit,
-            offset,
-            fromDate,
-            toDate,
-            "",
-            query?.selectedSport?.sportid,
-            query?.selectedVenue?.venueId,
-            query?.selectedCourts !== "All" && query?.selectedCourts
-          );
-        } else if (selectedTab === "cancel") {
-          callCancelBookingAPI(
-            limit,
-            offset,
-            fromDate,
-            toDate,
-            "",
-            query?.selectedSport?.sportid,
-            query?.selectedVenue?.venueId,
-            query?.selectedCourts !== "All" && query?.selectedCourts
-          );
-        }
+        // if (selectedTab === "booking") {
+        callAPI(
+          limit,
+          offset,
+          fromDate,
+          toDate,
+          "",
+          query?.selectedSport?.sportid,
+          query?.selectedVenue?.venueId,
+          query?.selectedCourts !== "All" && query?.selectedCourts
+        );
+        // } else if (selectedTab === "cancel") {
+        //   callCancelBookingAPI(
+        //     limit,
+        //     offset,
+        //     fromDate,
+        //     toDate,
+        //     "",
+        //     query?.selectedSport?.sportid,
+        //     query?.selectedVenue?.venueId,
+        //     query?.selectedCourts !== "All" && query?.selectedCourts
+        //   );
+        // }
       }
     }
     // eslint-disable-next-line
-  }, [limit, offset, currentDate, query, selectedTab]);
+  }, [limit, offset, currentDate, query]);
   useEffect(() => {
     if (user?.role !== "admin") {
       if (query?.dateRange[0] && query?.dateRange[1]) {
@@ -493,33 +490,33 @@ const RevenueSummary = () => {
         console.log("toDate: ", toDate);
 
         if (query?.selectedRange === "custom") {
-          if (selectedTab === "booking") {
-            callAPI(
-              limit,
-              offset,
-              fromDate,
-              toDate,
-              "",
-              query?.selectedSport?.sportid,
-              query?.selectedVenue?.venueId,
-              query?.selectedCourts !== "All" && query?.selectedCourts
-            );
-          } else if (selectedTab === "cancel") {
-            callCancelBookingAPI(
-              limit,
-              offset,
-              fromDate,
-              toDate,
-              "",
-              query?.selectedSport?.sportid,
-              query?.selectedVenue?.venueId,
-              query?.selectedCourts !== "All" && query?.selectedCourts
-            );
-          }
+          // if (selectedTab === "booking") {
+          callAPI(
+            limit,
+            offset,
+            fromDate,
+            toDate,
+            "",
+            query?.selectedSport?.sportid,
+            query?.selectedVenue?.venueId,
+            query?.selectedCourts !== "All" && query?.selectedCourts
+          );
+          // } else if (selectedTab === "cancel") {
+          //   callCancelBookingAPI(
+          //     limit,
+          //     offset,
+          //     fromDate,
+          //     toDate,
+          //     "",
+          //     query?.selectedSport?.sportid,
+          //     query?.selectedVenue?.venueId,
+          //     query?.selectedCourts !== "All" && query?.selectedCourts
+          //   );
+          // }
         }
       }
     }
-  }, [limit, offset, query, selectedTab]);
+  }, [limit, offset, query]);
 
   const bookingColumns = [
     {
@@ -679,12 +676,14 @@ const RevenueSummary = () => {
     {
       title: "Refund Date",
       render: (cell) => {
-        return <span>{moment(cell?.createdAt).format("DD-MM-YYYY")}</span>;
+        return (
+          <span>{moment(cell?.createdAt).format("DD-MM-YYYY hh:mm")}</span>
+        );
       },
       key: "date",
     },
     {
-      title: "Refund Pllayer Amount",
+      title: "Refunded Pllayer Amount",
       render: (cell) => {
         return <span>{parseFloat(cell?.refundAmount || 0).toFixed(2)}</span>;
       },
@@ -1011,28 +1010,26 @@ const RevenueSummary = () => {
             </div>
           </CardBody>
         </Card>
-        {selectedTab === "cancel" && (
-          <Card className="w-full md:w-[300px] bg-white rounded-3xl shadow-sm">
-            <CardBody className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-4 h-4 flex items-center justify-center rounded-full bg-orange-100">
-                  <RefreshCcw className="w-5 h-5 text-blue-500" />
-                </div>
-                <h2 className="text-xl text-blue-500 font-medium">
-                  Refund Collection
-                </h2>
+        <Card className="w-full md:w-[300px] bg-white rounded-3xl shadow-sm">
+          <CardBody className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-4 h-4 flex items-center justify-center rounded-full bg-orange-100">
+                <RefreshCcw className="w-5 h-5 text-blue-500" />
               </div>
-              <div className="flex items-baseline">
-                <span className="text-2xl font-bold">₹</span>
-                <span className="text-2xl font-bold">
-                  {formatIndianNumber(
-                    revenueDetails?.total_pending_refund_revenue || 0
-                  )}
-                </span>
-              </div>
-            </CardBody>
-          </Card>
-        )}
+              <h2 className="text-xl text-blue-500 font-medium">
+                Refund Collection
+              </h2>
+            </div>
+            <div className="flex items-baseline">
+              <span className="text-2xl font-bold">₹</span>
+              <span className="text-2xl font-bold">
+                {formatIndianNumber(
+                  revenueDetails?.total_pending_refund_revenue || 0
+                )}
+              </span>
+            </div>
+          </CardBody>
+        </Card>
       </div>
 
       {!isTablet && (
@@ -1263,7 +1260,7 @@ const RevenueSummary = () => {
             //   setLimit={setLimit}
             // />
             <CustomTableContainer
-              rows={revenueDetails?.rows}
+              rows={revenueDetails?.cancelBookingRows}
               columns={cancelBookingColumns}
               limit={limit}
               rowKey={"cancelBookingVenueId"}
