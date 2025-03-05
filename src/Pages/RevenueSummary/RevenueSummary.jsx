@@ -1017,7 +1017,7 @@ const RevenueSummary = () => {
                 <RefreshCcw className="w-5 h-5 text-blue-500" />
               </div>
               <h2 className="text-xl text-blue-500 font-medium">
-                Refund Collection
+                Cancellation Collection
               </h2>
             </div>
             <div className="flex items-baseline">
