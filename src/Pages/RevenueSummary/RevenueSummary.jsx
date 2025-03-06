@@ -196,7 +196,7 @@ const RevenueSummary = () => {
                   +apiCall?.total_player_revenue * 0.0118 || 0
               ).toFixed(2) +
                 +parseInt(apiCall?.total_ground_revenue || 0) +
-                +parseInt(apiCall?.total_pending_refund_revenue || 0)
+                parseFloat(apiCall?.total_pending_refund_revenue || 0)
             ).toFixed(2),
 
             total_pending_refund_revenue: parseFloat(
