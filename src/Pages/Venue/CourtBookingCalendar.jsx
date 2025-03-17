@@ -14,6 +14,7 @@ import {
   isToday,
   parse,
   isBefore,
+  endOfWeek,
 } from "date-fns";
 import {
   ChevronLeft,
@@ -28,12 +29,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import { styled } from "@mui/material/styles";
 import {
   Drawer,
   FormControl,
   InputLabel,
   MenuItem,
+  Switch,
   Select,
+  FormControlLabel,
 } from "@mui/material";
 import Loader from "../../Component/Loader";
 import {
@@ -57,6 +61,68 @@ import TableLoader from "../../Component/TableLoader";
 import * as FileSaver from "file-saver";
 import * as XLSX from "xlsx";
 import EditVenueModal from "./EditVenueModal";
+import WeekDayView from "./WeekDayView";
+import SingleDayView from "./SingleDayView";
+
+const IOSSwitch = styled((props) => (
+  <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
+))(({ theme }) => ({
+  width: 42,
+  height: 26,
+  padding: 0,
+  "& .MuiSwitch-switchBase": {
+    padding: 0,
+    margin: 2,
+    transitionDuration: "300ms",
+    "&.Mui-checked": {
+      transform: "translateX(16px)",
+      color: "#fff",
+      "& + .MuiSwitch-track": {
+        backgroundColor: "#0044CA",
+        opacity: 1,
+        border: 0,
+        ...theme.applyStyles("dark", {
+          backgroundColor: "#2ECA45",
+        }),
+      },
+      "&.Mui-disabled + .MuiSwitch-track": {
+        opacity: 0.5,
+      },
+    },
+    "&.Mui-focusVisible .MuiSwitch-thumb": {
+      color: "#33cf4d",
+      border: "6px solid #fff",
+    },
+    "&.Mui-disabled .MuiSwitch-thumb": {
+      color: theme.palette.grey[100],
+      ...theme.applyStyles("dark", {
+        color: theme.palette.grey[600],
+      }),
+    },
+    "&.Mui-disabled + .MuiSwitch-track": {
+      opacity: 0.7,
+      ...theme.applyStyles("dark", {
+        opacity: 0.3,
+      }),
+    },
+  },
+  "& .MuiSwitch-thumb": {
+    boxSizing: "border-box",
+    width: 22,
+    height: 22,
+  },
+  "& .MuiSwitch-track": {
+    borderRadius: 26 / 2,
+    backgroundColor: "#E9E9EA",
+    opacity: 1,
+    transition: theme.transitions.create(["background-color"], {
+      duration: 500,
+    }),
+    ...theme.applyStyles("dark", {
+      backgroundColor: "#39393D",
+    }),
+  },
+}));
 
 export default function CourtBookingCalendar() {
   const navigate = useNavigate();
@@ -75,7 +141,6 @@ export default function CourtBookingCalendar() {
     counter,
     updateCounter,
   } = useContext(MyContext);
-  console.log("selectedVenue: ", selectedVenue);
 
   const [allArea, setAllArea] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
@@ -87,11 +152,10 @@ export default function CourtBookingCalendar() {
   const [locationList, setLocationList] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [venueModal, setVenueModal] = useState(false);
+  const [mode, setMode] = useState("week");
 
-  console.log("currentDate: ", currentDate);
   const [allBookingDetails, setAllBookingDetails] = useState([]);
   const [allTodayCount, setAllTodayCount] = useState([]);
-  console.log("allBookingDetails: ", allBookingDetails);
   const [loading, setloading] = useState(true);
   const [timeSlots, setTimeSlots] = useState([]);
   const [selectedRow, setSelectedRow] = useState({});
@@ -100,12 +164,44 @@ export default function CourtBookingCalendar() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [timingModal, setTimingModal] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const startDate = startOfWeek(currentDate);
-  const endDate = addDays(startDate, 6);
-  console.log("counter: ", counter);
+  const [selectedRange, setSelectedRange] = useState("week");
+  console.log("selectedRange: ", selectedRange);
 
-  const handlePrevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
-  const handleNextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
+  const getDateRange = (selectedRange, currentDate) => {
+    switch (selectedRange) {
+      case "today":
+        return { startDate: currentDate, endDate: currentDate };
+      case "week":
+        return {
+          startDate: startOfWeek(currentDate, { weekStartsOn: 1 }),
+          endDate: endOfWeek(currentDate, { weekStartsOn: 1 }),
+        };
+    }
+  };
+
+  const { startDate, endDate } = getDateRange(selectedRange, currentDate);
+
+  const handlePrevWeek = () => {
+    switch (selectedRange) {
+      case "today":
+        setCurrentDate(addDays(currentDate, -1));
+        break;
+      case "week":
+        setCurrentDate(subWeeks(currentDate, 1));
+        break;
+    }
+  };
+  const handleNextWeek = () => {
+    console.log("selectedRange: ", selectedRange);
+    switch (selectedRange) {
+      case "today":
+        setCurrentDate(addDays(currentDate, 1));
+        break;
+      case "week":
+        setCurrentDate(addWeeks(currentDate, 1));
+        break;
+    }
+  };
 
   const connectWebSocket = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -165,10 +261,6 @@ export default function CourtBookingCalendar() {
         }
       }
       if (response.type === "reloadPage") {
-        console.log("Reload page event received");
-        console.log("currentDate:2 ", currentDate);
-        console.log("startDate:2 ", startDate);
-        console.log("counter:2 ", localStorage.getItem("counter"));
         updateCounter(+localStorage.getItem("counter") + 1);
       }
     };
@@ -192,30 +284,6 @@ export default function CourtBookingCalendar() {
 
     return socket;
   }, [counter]);
-
-  // Separate function to get booking data
-  const fetchUpdatedBookingData = useCallback(() => {
-    console.log("startDate: ", startDate);
-    console.log("endDate: ", endDate);
-    const formData = {
-      venueId: JSON.parse(localStorage.getItem("selectedVenue") || "{}")
-        ?.venueId,
-      venueCourtId: localStorage.getItem("selectedCourt"),
-      sportId: JSON.parse(localStorage.getItem("selectedSport") || "{}")
-        ?.sportid,
-      fromDate: moment(startDate).format("YYYY-MM-DD"),
-      toDate: moment(endDate).format("YYYY-MM-DD"),
-      type: "getAllBookingSlot",
-      admin: true,
-    };
-    console.log("formData: @@@@@@@@@@@@@@@@@@@@@", formData);
-
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(formData));
-    } else {
-      console.error("WebSocket not connected when trying to fetch data");
-    }
-  }, [startDate]);
 
   const sendWebSocketMessage = useCallback(
     (type, data) => {
@@ -282,7 +350,6 @@ export default function CourtBookingCalendar() {
   }, []);
 
   const callAPI = useCallback(async (locationName) => {
-    console.log("locationName, areaName: ", locationName);
     try {
       let query = { location: locationName || "" };
       if (user?.role !== "admin") {
@@ -297,10 +364,6 @@ export default function CourtBookingCalendar() {
         setAllVenue(apiCall?.data);
 
         if (apiCall?.data?.length > 0) {
-          console.log(
-            "apiCall?.data?.[0]?.sports?.[0]?.courts: ",
-            apiCall?.data?.[0]?.sports?.[0]?.courts
-          );
           updateSelectedVenue(apiCall?.data?.[0]);
           updateSelectedCourt(
             apiCall?.data?.[0]?.sports?.[0]?.courts?.[0]?.venuecourtid
@@ -342,21 +405,26 @@ export default function CourtBookingCalendar() {
 
   useEffect(() => {
     if (selectedVenue?.venueId) {
-      console.log("selectedVenue?.venueId: ", selectedVenue?.venueId);
+      const { startDate, endDate } = getDateRange(selectedRange, currentDate);
+
       let formData = {
         venueId: selectedVenue?.venueId,
-        venueCourtId: selectedCourt,
         sportId: selectedSport?.sportid,
         fromDate: moment(startDate).format("YYYY-MM-DD"),
         toDate: moment(endDate).format("YYYY-MM-DD"),
         admin: true,
       };
-      console.log("formData: ", formData);
+
+      console.log("mode: ", mode);
+      if (mode === "week") {
+        formData.venueCourtId = selectedCourt;
+      }
+
       // setloading(true);
       getAllBookingSlotsWebSocket(formData);
     }
     // eslint-disable-next-line
-  }, [selectedVenue, selectedCourt, selectedSport, currentDate, counter]);
+  }, [mode, selectedVenue, selectedCourt, selectedSport, currentDate, counter]);
 
   const handleOpenModal = (timeSlots, dayIndex, row, pastTime) => {
     // if (row?.isavailable) {
@@ -375,12 +443,16 @@ export default function CourtBookingCalendar() {
     // callAPI();
     let formData = {
       venueId: selectedVenue?.venueId,
-      venueCourtId: selectedCourt,
       sportId: selectedSport?.sportid,
       fromDate: moment(startDate).format("YYYY-MM-DD"),
       toDate: moment(endDate).format("YYYY-MM-DD"),
       admin: true,
     };
+
+    if (mode === "week") {
+      formData.venueCourtId = selectedCourt;
+    }
+
     getAllBookingSlotsWebSocket(formData);
     // setloading(true);
     // allBookingCallAPI(formData);
@@ -409,10 +481,6 @@ export default function CourtBookingCalendar() {
         setAllVenue(apiCall?.data);
 
         if (apiCall?.data?.length > 0) {
-          console.log(
-            "apiCall?.data?.[0]?.sports?.[0]?.courts: ",
-            apiCall?.data?.[0]?.sports?.[0]?.courts
-          );
           updateSelectedVenue(apiCall?.data?.[0]);
           updateSelectedCourt(
             apiCall?.data?.[0]?.sports?.[0]?.courts?.[0]?.venuecourtid
@@ -462,7 +530,12 @@ export default function CourtBookingCalendar() {
             onClick={handlePrevWeek}
           />
           <span className="text-sm font-medium">
-            {format(startDate, "d MMM")} - {format(endDate, "d MMM yyyy")}
+            {selectedRange === "today"
+              ? `${format(startDate, "d MMM")}`
+              : `${format(startDate, "d MMM")} - ${format(
+                  endDate,
+                  "d MMM yyyy"
+                )}`}
           </span>
           <ChevronRight
             className="w-5 h-5 text-gray-500 cursor-pointer"
@@ -652,7 +725,12 @@ export default function CourtBookingCalendar() {
                 onClick={handlePrevWeek}
               />
               <span className="text-sm font-medium">
-                {format(startDate, "d MMM")} - {format(endDate, "d MMM yyyy")}
+                {selectedRange === "today"
+                  ? `${format(startDate, "d MMM")}`
+                  : `${format(startDate, "d MMM")} - ${format(
+                      endDate,
+                      "d MMM yyyy"
+                    )}`}
               </span>
               <ChevronRight
                 className="w-5 h-5 text-gray-500 cursor-pointer"
@@ -728,6 +806,30 @@ export default function CourtBookingCalendar() {
                 ))}
               </Select>
             </FormControl>
+
+            {user?.role !== "venueStaff" && user?.role !== "admin" && (
+              <Button
+                variant="outline"
+                style={{ padding: "10px 23px" }}
+                onClick={() => {
+                  setVenueModal(true);
+                }}
+                className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Manage Venue
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                downloadExcel();
+              }}
+              style={{ padding: "10px 23px" }}
+              className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+            >
+              Export Excel
+            </Button>
           </div>
         )}
 
@@ -750,41 +852,7 @@ export default function CourtBookingCalendar() {
 
       {!isTablet && (
         <div className="px-4">
-          <div className="flex justify-end">
-            {user?.role !== "venueStaff" && user?.role !== "admin" && (
-              <Button
-                variant="outline"
-                style={{ padding: "10px 23px" }}
-                onClick={() => {
-                  setVenueModal(true);
-                }}
-                className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Manage Venue
-              </Button>
-            )}
-            {/* 
-          <Button
-            variant="outline"
-            style={{ padding: "10px 23px" }}
-            className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
-          >
-            Today Revenue -{" "}
-            {allTodayCount?.reduce((total, num) => total + num.price, 0)} |{" "}
-            Slots -{allTodayCount?.length}
-          </Button> */}
-            <Button
-              variant="outline"
-              onClick={() => {
-                downloadExcel();
-              }}
-              style={{ padding: "10px 23px" }}
-              className="bg-black mx-5 text-white hover:bg-gray-800 flex items-center mb-3 rounded "
-            >
-              Export Excel
-            </Button>
-          </div>
+          <div className="flex justify-end"></div>
         </div>
       )}
       {allVenue?.length === 0 ? (
@@ -807,279 +875,61 @@ export default function CourtBookingCalendar() {
         <>
           <div className="p-4 ">
             {/* Filter */}
-
-            <div
-              className="border-1 border-slate-300 border-bottom-none bg-white"
-              style={{ borderRadius: "8px 8px 0px 0px" }}
-            >
-              <Box
-                sx={{
-                  flexGrow: 1,
-
-                  borderRadius: "8px 8px 0px 0px",
-                  paddingLeft: 2,
-                }}
-              >
-                <Tabs
-                  value={selectedCourt}
-                  onChange={(event, newValue) => {
-                    console.log(newValue);
-                    setloading(true);
-                    updateSelectedCourt(newValue);
-                  }}
-                  style={{ overflow: "auto" }}
-                  scrollButtons
-                  allowScrollButtonsMobile
-                  className="custom-court"
-                  aria-label=" scrollable force tabs example"
-                >
-                  {selectedSport?.courts?.map((court, i) => (
-                    <Tab
-                      label={court?.courtname}
-                      value={court?.venuecourtid}
-                      key={i}
-                    />
-                  ))}
-                </Tabs>
-              </Box>
-            </div>
-
-            <div
-              className="cal-table table-responsive"
-              style={{ maxHeight: "calc( 100vh - 230px)" }}
-            >
-              {" "}
-              <Table
-                id="table-calendar"
-                className=" rounded-lg  w-full custom-table  p-4"
-              >
-                <thead className="sticky " style={{ top: 0 }}>
-                  <tr className="bg-white">
-                    <th
-                      className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 z-10 border-1 border-slate-300"
-                      style={{
-                        backgroundColor: "#ffffff",
-                        zIndex: 999,
-                        width: 100,
+            <div className="flex justify-end">
+              <div className="col-md-6">
+                <FormControlLabel
+                  control={
+                    <IOSSwitch
+                      sx={{ m: 1 }}
+                      checked={mode === "week" ? true : false}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setMode("week");
+                          setSelectedRange("week");
+                        } else {
+                          setMode("day");
+                          setSelectedRange("today");
+                        }
                       }}
-                    >
-                      Time
-                    </th>
-                    {[...Array(7)].map((_, index) => {
-                      const date = addDays(startDate, index);
-
-                      const isCurrentDate = isToday(date); // check if the date is today
-
-                      return (
-                        <th
-                          key={index}
-                          style={{
-                            borderTop: isCurrentDate && "4px solid #0044CA",
-                            backgroundColor: isCurrentDate ? "white" : "",
-                            minWidth: 100,
-                          }}
-                          className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r-1 border-slate-300"
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div
-                                style={{
-                                  fontWeight: 600,
-                                  fontSize: 16,
-                                  color: "black",
-                                }}
-                              >
-                                {format(date, "dd")}
-                              </div>
-                              <div>{format(date, "EE").toUpperCase()}</div>
-                            </div>
-                            <div
-                              style={{
-                                background: "black",
-                                padding: 5,
-                                borderRadius: 6,
-                              }}
-                            >
-                              <Settings2
-                                onClick={() => {
-                                  handleEditSlotTiming(format(date, "EEEE"));
-                                }}
-                                className="cursor-pointer text-white"
-                                size={18}
-                              />
-                            </div>
-                          </div>
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {timeSlots?.length <= 0 ? (
-                    <tr>
-                      <td colSpan={8}>
-                        <div className="flex flex-col items-center justify-center p-4 md:p-10 w-full">
-                          <img
-                            src={RecordNotFoundImage}
-                            className="h-48 w-64 md:h-64 md:w-80 object-contain"
-                            alt="No records found"
-                          />
-                          <p className="text-lg md:text-2xl font-semibold text-[#012e53] mt-3 text-center">
-                            No Time Slots Found.
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    timeSlots.map((slot, slotIndex) => (
-                      <tr
-                        key={slot}
-                        className={`border-1 border-slate-300 ${
-                          slotIndex % 2 === 0 ? "bg-white" : "bg-white"
-                        }`}
-                      >
-                        <td
-                          className="py-2 px-3  text-sm text-gray-500 sticky left-0 z-10 border-r-1 border-slate-300"
-                          style={{
-                            backgroundColor: "white",
-                            zIndex: 999,
-                            width: 100,
-                            minWidth: 100,
-                          }}
-                        >
-                          {slot}
-                        </td>
-                        {[...Array(7)].map((_, dayIndex) => {
-                          console.log(slot, "sad", dayIndex);
-
-                          const date = addDays(startDate, dayIndex);
-
-                          const slotDateTime = parse(
-                            `${format(date, "yyyy-MM-dd")} ${slot}`,
-                            "yyyy-MM-dd HH:mm",
-                            new Date()
-                          );
-
-                          const isPastTimeSlot = isBefore(
-                            slotDateTime,
-                            new Date()
-                          );
-
-                          const isBooked =
-                            allBookingDetails?.bookingSlots?.find((booking) => {
-                              if (
-                                booking.date === format(date, "yyyy-MM-dd") &&
-                                booking.startTime === slot
-                              ) {
-                                return booking;
-                              } else {
-                                return false;
-                              }
-                            });
-
-                          console.log(isBooked);
-                          return (
-                            <td
-                              style={{
-                                minWidth: 150,
-
-                                cursor: !isBooked?.isavailable
-                                  ? "not-allowed"
-                                  : "pointer",
-                              }}
-                              onClick={() => {
-                                if (!isPastTimeSlot) {
-                                  handleOpenModal(slot, dayIndex, isBooked);
-                                } else {
-                                  handleOpenModal(
-                                    slot,
-                                    dayIndex,
-                                    isBooked,
-                                    true
-                                  );
-                                }
-                              }}
-                              key={dayIndex}
-                              className="py-2 px-3 text-center border-r-1 border-slate-300"
-                            >
-                              {isBooked?.isBooked &&
-                              !isBooked?.ispartialpayment ? (
-                                <div
-                                  className={`flex items-center h-12 bg-green-50 rounded-md overflow-hidden max-w-xs`}
-                                >
-                                  <div className="w-2 h-12 bg-green-600"></div>
-                                  <div className="px-2 text-start">
-                                    <p
-                                      className={`text-sm font-bold text-gray-800`}
-                                    >
-                                      {isBooked?.price &&
-                                        `₹ ${isBooked?.price}`}
-                                    </p>
-                                    <p className="text-sm text-gray-600">
-                                      {isBooked?.startTime} -{" "}
-                                      {isBooked?.endTime}
-                                    </p>
-                                  </div>
-                                </div>
-                              ) : isBooked?.isBooked &&
-                                isBooked?.ispartialpayment ? (
-                                <div
-                                  className={`flex items-center h-12 bg-orange-50 rounded-md overflow-hidden max-w-xs`}
-                                >
-                                  <div className="w-2 h-12 bg-orange-600"></div>
-                                  <div className="px-2 text-start">
-                                    <p
-                                      className={`text-sm font-bold text-gray-800`}
-                                    >
-                                      {isBooked?.price &&
-                                        `₹ ${isBooked?.price}`}
-                                    </p>
-                                    <p className="text-sm text-gray-600">
-                                      {isBooked?.startTime} -{" "}
-                                      {isBooked?.endTime}
-                                    </p>
-                                  </div>
-                                </div>
-                              ) : !isBooked?.isavailable || isPastTimeSlot ? (
-                                <div
-                                  style={{
-                                    backgroundImage: `url(${MaskGroup})`,
-                                  }}
-                                  className={`flex items-center h-12 bg-slate-50 rounded-md overflow-hidden max-w-xs`}
-                                >
-                                  {/* <div className="w-2 h-12 bg-slate-600"></div> */}
-                                  <div className="px-2 text-start">
-                                    <p
-                                      className={`text-sm font-bold text-gray-800`}
-                                    >
-                                      {isBooked?.price &&
-                                        `₹ ${isBooked?.price}`}
-                                    </p>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div
-                                  className={`flex items-center h-12  rounded-md overflow-hidden max-w-xs`}
-                                >
-                                  <div className="px-2 text-start">
-                                    <p
-                                      className={`text-sm font-normal text-gray-800`}
-                                    >
-                                      {isBooked?.price &&
-                                        `₹ ${isBooked?.price}`}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </Table>
+                    />
+                  }
+                  label={"Week View"}
+                  labelPlacement="start"
+                  sx={{ justifyContent: "flex-end", display: "flex" }}
+                />
+              </div>
             </div>
+
+            {mode === "week" && (
+              <WeekDayView
+                selectedCourt={selectedCourt}
+                setloading={setloading}
+                updateSelectedCourt={updateSelectedCourt}
+                addDays={addDays}
+                selectedSport={selectedSport}
+                startDate={startDate}
+                isToday={isToday}
+                handleEditSlotTiming={handleEditSlotTiming}
+                timeSlots={timeSlots}
+                allBookingDetails={allBookingDetails}
+                handleOpenModal={handleOpenModal}
+              />
+            )}
+            {mode === "day" && (
+              <SingleDayView
+                selectedCourt={selectedCourt}
+                setloading={setloading}
+                updateSelectedCourt={updateSelectedCourt}
+                addDays={addDays}
+                selectedSport={selectedSport}
+                startDate={startDate}
+                isToday={isToday}
+                handleEditSlotTiming={handleEditSlotTiming}
+                timeSlots={timeSlots}
+                allBookingDetails={allBookingDetails}
+                handleOpenModal={handleOpenModal}
+              />
+            )}
 
             {!isMobile && timeSlots?.length > 0 && (
               <div
@@ -1105,7 +955,6 @@ export default function CourtBookingCalendar() {
                   <div className="w-4 h-4 bg-green-600 rounded mr-2"></div>
                   <span>Book With Full Payment</span>
                 </div>
-              
               </div>
             )}
           </div>
