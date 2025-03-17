@@ -102,6 +102,10 @@ const VenueImagesStep = () => {
     formData.append("password", contextData?.password);
     formData.append("staffPassword", contextData?.staffPassword);
     formData.append("isBookable", contextData?.isBookable || false);
+    formData.append(
+      "whatsappMobileNo",
+      JSON.stringify(contextData?.whatsappMobileNo || [])
+    );
 
     if (files.length > 0) {
       for (let index = 0; index < files.length; index++) {

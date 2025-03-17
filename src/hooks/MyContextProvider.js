@@ -28,6 +28,7 @@ const MyContextProvider = ({ children }) => {
       phone: "",
       email: "",
       alternativePhoneNo: "",
+      whatsappMobileNo: [""],
       venueName: "",
       address: "",
       addressUrl: "",

@@ -5,6 +5,7 @@ import { MyContext } from "../../../hooks/MyContextProvider";
 import { toast } from "react-toastify";
 import { Switch, FormControlLabel } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { Plus, Trash2 } from "lucide-react";
 
 const IOSSwitch = styled((props) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
@@ -80,6 +81,7 @@ const FormStep = () => {
     password: false,
     staffPassword: false,
     isBookable: false,
+    whatsappMobileNo: false,
   });
 
   const handleChange = (name, value) => {
@@ -119,8 +121,21 @@ const FormStep = () => {
     } else if (!contextData?.staffPassword) {
       toast.error("Please Enter a Staff Password!");
       setInputError({ ...inputError, staffPassword: true });
+    } else if (contextData?.whatsappMobileNo?.length < 1) {
+      toast.error("Please Enter atleast one Whatsapp Number!");
     } else {
-      updateStep("step7");
+      let error = false;
+
+      contextData?.whatsappMobileNo?.map((er) => {
+        if (er?.length !== 10) {
+          toast.error("Please Enter a Phone Number in Proper Format!");
+          error = true;
+        }
+      });
+
+      if (!error) {
+        updateStep("step7");
+      }
     }
   };
 
@@ -129,7 +144,6 @@ const FormStep = () => {
       <div className="max-w-4xl mx-auto">
         <form className="space-y-4">
           <h2 className="text-xl font-semibold">Enter your details</h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label className="mb-0" htmlFor="owner-name">
@@ -195,7 +209,6 @@ const FormStep = () => {
               />
             </div>
           </div>
-
           <div className="space-y-2">
             <Label className="mb-0" htmlFor="venue-name">
               Venue Name*
@@ -212,7 +225,6 @@ const FormStep = () => {
               }}
             />
           </div>
-
           <div className="space-y-2">
             <Label className="mb-0" htmlFor="address">
               Address*
@@ -296,6 +308,95 @@ const FormStep = () => {
                 // sx={{ width: isTablet ? "auto" : "15%", textWrap: "nowrap" }}
               />
             </div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <Label className="mb-0" htmlFor="phone">
+              Whatsapp Number *
+            </Label>{" "}
+            <div
+              style={{
+                background: "black",
+                padding: 5,
+                borderRadius: 6,
+              }}
+              onClick={() => {
+                let obj = { ...contextData };
+                let arr = [...obj.whatsappMobileNo];
+
+                arr.push("");
+
+                obj["whatsappMobileNo"] = arr;
+
+                updateData(obj);
+              }}
+            >
+              <Plus size={20} className="cursor-pointer text-white" />
+            </div>
+          </div>
+
+          <div
+            style={{ marginTop: 0 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-3"
+          >
+            {contextData?.whatsappMobileNo?.map((item, i) => (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  alignItems: "center",
+                  gap: 10,
+                  width: "100%",
+                }}
+              >
+                <div className="">
+                  <Input
+                    id="phone"
+                    style={{ border: inputError?.phone && "1px solid red" }}
+                    placeholder="00000 00000"
+                    type="number"
+                    value={item}
+                    name="phone"
+                    onChange={(e) => {
+                      let obj = { ...contextData };
+                      let arr = [...obj.whatsappMobileNo];
+
+                      arr[i] = e.target.value;
+
+                      obj["whatsappMobileNo"] = arr;
+
+                      updateData(obj);
+                    }}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    background: "black",
+                    padding: 5,
+                    borderRadius: 6,
+                  }}
+                  onClick={() => {
+                    let obj = { ...contextData };
+                    let arr = [...obj.whatsappMobileNo];
+
+                    arr.splice(i, 1);
+
+                    obj["whatsappMobileNo"] = arr;
+
+                    updateData(obj);
+                  }}
+                >
+                  <Trash2 size={20} className="cursor-pointer text-white" />
+                </div>
+              </div>
+            ))}
           </div>
         </form>
 

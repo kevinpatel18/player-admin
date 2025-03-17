@@ -32,6 +32,7 @@ const AddVenue = () => {
         addressUrl: "",
         aboutVenue: "",
         cancellationPolicy: "",
+        whatsappMobileNo: [""],
         imageArray: [],
         isBookable: false,
       });
