@@ -1,6 +1,7 @@
 import LiveBooking from "../Pages/LiveBooking/LiveBooking";
 import Login from "../Pages/Login/Login";
 import ManagePayment from "../Pages/Payment/ManagePayment";
+import Rating from "../Pages/Rating/Rating";
 import RevenueSummary from "../Pages/RevenueSummary/RevenueSummary";
 import ManageUser from "../Pages/User/ManageUser";
 import AddVenue from "../Pages/Venue/AddVenue";
@@ -49,6 +50,11 @@ const protectedRoutes = [
     path: "/add-venue",
     exact: true,
     component: <AddVenue />,
+  },
+  {
+    path: "/rating",
+    exact: true,
+    component: <Rating />,
   },
 ];
 

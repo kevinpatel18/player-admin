@@ -418,3 +418,25 @@ export const updateTransactionRefundStatus = async (formData) => {
   const _data = await data.json();
   return _data;
 };
+
+export const getAllRating = async (formData) => {
+  let url = formData?.userid
+    ? `${baseUrl}rating?page=${formData?.offset}&page_size=${
+        formData?.limit
+      }&venueOwnerId=${formData?.userid}&name=${
+        formData?.name || ""
+      }&phoneNumber=${formData?.phoneNumber || ""}`
+    : `${baseUrl}rating?page=${formData?.offset}&page_size=${
+        formData?.limit
+      }&name=${formData?.name || ""}&phoneNumber=${
+        formData?.phoneNumber || ""
+      }`;
+  const data = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const _data = await data.json();
+  return _data;
+};

@@ -172,6 +172,69 @@ export default function Header() {
           </svg>
         ),
       },
+      {
+        id: "rating",
+        link: "/rating",
+        title: "Rating",
+        icon: (
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 22 22"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M8.79136 13.9397C12.1729 13.9397 15.0632 14.4521 15.0632 16.499C15.0632 18.5459 12.1922 19.073 8.79136 19.073C5.40886 19.073 2.51953 18.5652 2.51953 16.5174C2.51953 14.4695 5.38961 13.9397 8.79136 13.9397Z"
+              stroke={
+                location?.pathname === "/rating" || activeTab === "rating"
+                  ? "white"
+                  : "black"
+              }
+              stroke-width="1.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M8.79198 11.0182C6.57182 11.0182 4.77148 9.21875 4.77148 6.99859C4.77148 4.77842 6.57182 2.979 8.79198 2.979C11.0112 2.979 12.8116 4.77842 12.8116 6.99859C12.8198 9.2105 11.0323 11.0099 8.8204 11.0182H8.79198Z"
+              stroke={
+                location?.pathname === "/rating" || activeTab === "rating"
+                  ? "white"
+                  : "black"
+              }
+              stroke-width="1.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M15.1094 9.97483C16.577 9.76858 17.7072 8.50908 17.71 6.98467C17.71 5.48225 16.6145 4.23558 15.1781 4"
+              stroke={
+                location?.pathname === "/rating" || activeTab === "rating"
+                  ? "white"
+                  : "black"
+              }
+              stroke-width="1.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M17.0449 13.5046C18.4667 13.7164 19.4594 14.2151 19.4594 15.2417C19.4594 15.9485 18.9919 16.4068 18.2366 16.6937"
+              stroke={
+                location?.pathname === "/rating" || activeTab === "rating"
+                  ? "white"
+                  : "black"
+              }
+              stroke-width="1.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        ),
+      },
       // {
       //   id: "payment-management",
       //   link: "/payment-management",

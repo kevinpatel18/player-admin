@@ -26,6 +26,7 @@ import { getAmenitiesDetails, updateVenueDetails } from "../../Libs/api";
 import { setISODay } from "date-fns";
 import { MyContext } from "../../hooks/MyContextProvider";
 import useBreakPoints from "../../hooks/useBreakPoints";
+import { Plus, Trash2 } from "lucide-react";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -123,6 +124,7 @@ const EditVenue = ({ open, setOpen, handleCallBackApi, selectedVenue }) => {
     isBookable: selectedVenue?.isBookable,
     isFeatured: selectedVenue?.isFeatured,
     position: selectedVenue?.position,
+    whatsappMobileNo: JSON.parse(selectedVenue?.whatsappMobileNo || '[""]'),
     password: "",
     staffPassword: "",
   });
@@ -195,34 +197,47 @@ const EditVenue = ({ open, setOpen, handleCallBackApi, selectedVenue }) => {
     } else if (inputData?.phoneNo?.length !== 10) {
       toast.error("Please Enter a Phone Number in Proper Format!");
       setInputDataError({ ...inputDataError, phoneNo: true });
+    } else if (inputData?.whatsappMobileNo?.length < 1) {
+      toast.error("Please Enter atleast one Whatsapp Number!");
     } else {
-      //   let formData = {
-      //     ...inputData,
-      //     // amenities: inputData?.amenities?.map((er) => er?.amenitiesid),
-      //   };
-      //   console.log("formData: ", formData);
+      let error = false;
 
-      try {
-        const apiCall = await updateVenueDetails(
-          inputData,
-          selectedVenue?.venueId
-        );
-        if (apiCall.status) {
-          console.log(apiCall, "apiCall");
-
-          setloading(false);
-          setOpen(false);
-          handleCallBackApi();
-        } else {
-          setloading(false);
-
-          toast.error(apiCall?.message);
+      inputData?.whatsappMobileNo?.map((er) => {
+        if (er?.length !== 10) {
+          toast.error("Please Enter a Phone Number in Proper Format!");
+          error = true;
         }
-      } catch (error) {
-        setloading(false);
+      });
 
-        console.log(error);
-        toast.error(error);
+      if (!error) {
+        let formData = {
+          ...inputData,
+          whatsappMobileNo: JSON.stringify(inputData?.whatsappMobileNo),
+        };
+        console.log("formData: ", formData);
+
+        try {
+          const apiCall = await updateVenueDetails(
+            formData,
+            selectedVenue?.venueId
+          );
+          if (apiCall.status) {
+            console.log(apiCall, "apiCall");
+
+            setloading(false);
+            setOpen(false);
+            handleCallBackApi();
+          } else {
+            setloading(false);
+
+            toast.error(apiCall?.message);
+          }
+        } catch (error) {
+          setloading(false);
+
+          console.log(error);
+          toast.error(error);
+        }
       }
     }
   };
@@ -265,7 +280,7 @@ const EditVenue = ({ open, setOpen, handleCallBackApi, selectedVenue }) => {
               className="mb-1 jost-regular mr-4"
             >
               {" "}
-              Edit Venue
+              Edit Venue 12
             </p>
           </div>
 
@@ -646,6 +661,62 @@ const EditVenue = ({ open, setOpen, handleCallBackApi, selectedVenue }) => {
                 />
               </div>
             )}
+
+            {inputData?.whatsappMobileNo?.map((item, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  gap: 10,
+                  width: "100%",
+                }}
+              >
+                <div className="col-md-6">
+                  <TextField
+                    label="Whatsapp Number"
+                    type="number"
+                    value={item}
+                    style={{ width: "100%" }}
+                    fullWidth
+                    onChange={(e) => {
+                      let arr = [...inputData?.whatsappMobileNo];
+                      arr[i] = e.target.value;
+                      setInputData({ ...inputData, whatsappMobileNo: arr });
+                    }}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    background: "black",
+                    padding: 12,
+                    borderRadius: 6,
+                  }}
+                  onClick={() => {
+                    let arr = [...inputData?.whatsappMobileNo];
+                    arr?.push("");
+                    setInputData({ ...inputData, whatsappMobileNo: arr });
+                  }}
+                >
+                  <Plus size={30} className="cursor-pointer text-white" />
+                </div>
+                <div
+                  style={{
+                    background: "black",
+                    padding: 12,
+                    borderRadius: 6,
+                  }}
+                  onClick={() => {
+                    let arr = [...inputData?.whatsappMobileNo];
+                    arr?.splice(i, 1);
+                    setInputData({ ...inputData, whatsappMobileNo: arr });
+                  }}
+                >
+                  <Trash2 size={30} className="cursor-pointer text-white" />
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="mt-10 flex justify-end gap-3 mr-5 ml-5 ">

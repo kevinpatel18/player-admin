@@ -675,7 +675,7 @@ const RevenueSummary = () => {
       title: "Refund Date",
       render: (cell) => {
         return (
-          <span>{moment(cell?.createdAt).format("DD-MM-YYYY hh:mm")}</span>
+          <span>{moment(cell?.createdAt).format("DD-MM-YYYY hh:mm A")}</span>
         );
       },
       key: "date",
