@@ -524,25 +524,6 @@ export default function CourtBookingCalendar() {
           isMobile ? "flex-column gap-3" : ""
         }`}
       >
-        <div className="flex items-center space-x-2 bg-white rounded-md px-2 py-3 border-1 border-slate-300 mt-6">
-          <ChevronLeft
-            className="w-5 h-5 text-gray-500 cursor-pointer"
-            onClick={handlePrevWeek}
-          />
-          <span className="text-sm font-medium">
-            {selectedRange === "today"
-              ? `${format(startDate, "d MMM")}`
-              : `${format(startDate, "d MMM")} - ${format(
-                  endDate,
-                  "d MMM yyyy"
-                )}`}
-          </span>
-          <ChevronRight
-            className="w-5 h-5 text-gray-500 cursor-pointer"
-            onClick={handleNextWeek}
-          />
-        </div>
-
         {user?.role === "admin" && (
           <FormControl size="small" className="w-[200px] bg-white">
             <InputLabel id="location-select-label">City</InputLabel>
@@ -834,14 +815,33 @@ export default function CourtBookingCalendar() {
         )}
 
         {isTablet && (
-          <div className="flex justify-end">
+          <div className="flex justify-end items-center gap-3">
+            <div className="flex items-center text-nowrap space-x-2 bg-white rounded-md px-4 py-3 border-1 border-slate-300 ">
+              <ChevronLeft
+                className="w-5 h-5 text-gray-500 cursor-pointer"
+                onClick={handlePrevWeek}
+              />
+              <span className="text-sm font-medium">
+                {selectedRange === "today"
+                  ? `${format(startDate, "d MMM")}`
+                  : `${format(startDate, "d MMM")} - ${format(
+                      endDate,
+                      "d MMM yyyy"
+                    )}`}
+              </span>
+              <ChevronRight
+                className="w-5 h-5 text-gray-500 cursor-pointer"
+                onClick={handleNextWeek}
+              />
+            </div>
+
             <Button
               variant="outline"
               onClick={() => {
                 setDrawerOpen(true);
               }}
               style={{ padding: "10px 23px" }}
-              className="bg-black text-white hover:bg-gray-800 flex items-center mb-3 rounded "
+              className="bg-black text-nowrap text-white hover:bg-gray-800 flex items-center  rounded "
             >
               <Calendar className="w-4 h-4 mr-2" />
               Apply Filter
